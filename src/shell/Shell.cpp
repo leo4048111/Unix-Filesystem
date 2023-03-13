@@ -1,4 +1,4 @@
-#include "../include/Shell.hpp"
+#include "Shell.hpp"
 
 #include <iostream>
 #include <string.h>
@@ -48,7 +48,6 @@ namespace ufs
 
     bool Shell::runCmd()
     {
-
         if(_splitCmd.size() == 0)
         {
             error("No command found.");
@@ -57,30 +56,30 @@ namespace ufs
 
         std::string cmd = _splitCmd[0];
 
-        switch(cmd)
-        {
-            case "mount":
-                //mount();
-                break;
-            // case "unmount":
-            //     unmount();
-            //     break;
-            // case "format":
-            //     format();
-            //     break;
-            // case "cd":
-            //     cd();
-            //     break;
-            // case "ls":
-            //     ls();
-            //     break;
-            // case "rm":
-            //     rm();
-            //     break;
-            // case "mkdir":
-            //     mkdir();
-            //     break;
-        }
+        // switch(cmd)
+        // {
+        //     case "mount":
+        //         //mount();
+        //         break;
+        //     // case "unmount":
+        //     //     unmount();
+        //     //     break;
+        //     // case "format":
+        //     //     format();
+        //     //     break;
+        //     // case "cd":
+        //     //     cd();
+        //     //     break;
+        //     // case "ls":
+        //     //     ls();
+        //     //     break;
+        //     // case "rm":
+        //     //     rm();
+        //     //     break;
+        //     // case "mkdir":
+        //     //     mkdir();
+        //     //     break;
+        // }
 
 
         return false;
