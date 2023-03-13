@@ -1,0 +1,3 @@
+[submodule ".\\third-party\\rang"]
+	path = .\\third-party\\rang
+	url = https://github.com/agauniyal/rang

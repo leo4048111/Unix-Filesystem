@@ -1,11 +1,13 @@
 #pragma once
 
+#include "rang.hpp"
+
 #include <memory>
+#include <string>
+#include <vector>
 
 #define TTY_BUFFER_SIZE 4096
 #define MAX_CMD_LEN 4096
-#define MAX_PARAM_NUM 32
-#define MAX_SINGLE_PARAM_LEN 128
 
 namespace ufs
 {
@@ -17,10 +19,6 @@ namespace ufs
         Shell &operator=(const Shell &) = delete;
 
         static std::unique_ptr<Shell> _inst;
-
-        char _ttyBuffer[TTY_BUFFER_SIZE];
-        char _splitCmd[MAX_PARAM_NUM][MAX_SINGLE_PARAM_LEN]{};
-        int _cmdSeqNum = 0;
 
     public:
         static Shell *getInstance()
@@ -35,5 +33,22 @@ namespace ufs
         ~Shell() = default;
 
         void loop();
+
+        void error(const std::string msg);
+
+        void warning(const std::string msg);
+
+        void info(const std::string msg);
+
+    private:
+        char _ttyBuffer[TTY_BUFFER_SIZE];
+        std::vector<std::string> _splitCmd;
+        int _cmdSeqNum = 0;
+
+        void printPrefix();
+
+        void parseCmdLiteral();
+
+        bool runCmd();
     };
 }
