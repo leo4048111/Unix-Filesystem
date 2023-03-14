@@ -9,14 +9,18 @@ namespace ufs
     {
         Error ec = Error::UFS_NOERR;
 
-        // _mmapInst = std::make_unique<Mmap>(DISK_IMG_FILEPATH);
+        _imgMap.reset(new ImageMap(DISK_IMG_FILEPATH));
 
-        // if (!_mmapInst->is_open())
-        // {
-        //     ec = Error::UFS_ERR_MOUNT_FAILED;
-        //     return ec;
-        // }
+        if(_imgMap == nullptr) {
+            ec = Error::UFS_ERR_MOUNT_FAILED;
+            return ec;
+        }
 
+        _imgMap->write(0, 123);
+
+        int test;
+        _imgMap->read(0, test);
+        std::cout << test << std::endl;
         return ec;
     }
 

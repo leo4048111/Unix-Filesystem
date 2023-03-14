@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "Defines.hpp"
-#include "mmap.hpp"
+#include "ImageMap.hpp"
 
 namespace ufs
 {
@@ -34,6 +34,6 @@ namespace ufs
 
         Error unmount(); // unmount disk from file img
     private:
-        std::unique_ptr<Mmap> _mmapInst {nullptr};
+        std::unique_ptr<ImageMap> _imgMap {nullptr};
     };
 }
