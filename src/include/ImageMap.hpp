@@ -22,6 +22,8 @@ namespace ufs
         template <typename T>
         Error read(const size_t offset, T &elem);
 
+        const size_t size();
+
     private:
         std::fstream _fs;
         std::string _path;

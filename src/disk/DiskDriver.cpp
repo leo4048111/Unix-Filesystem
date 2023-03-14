@@ -1,4 +1,5 @@
 #include "DiskDriver.hpp"
+#include "DiskBlock.hpp"
 
 namespace ufs
 {
@@ -16,11 +17,14 @@ namespace ufs
             return ec;
         }
 
-        _imgMap->write(0, 123);
-
-        int test;
-        _imgMap->read(0, test);
-        std::cout << test << std::endl;
+        // If the disk img is empty, initialize it
+        if(_imgMap->size() < DISK_SIZE) {
+            DiskBlock block;
+            for(size_t i = 0; i < DISK_BLOCK_NUM; i++) {
+                _imgMap->write(i * DISK_BLOCK_SIZE, block);
+            }
+        }
+        
         return ec;
     }
 
