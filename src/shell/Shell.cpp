@@ -1,7 +1,9 @@
-#include "Shell.hpp"
+#include "../include/Shell.hpp"
 
 #include <iostream>
 #include <string.h>
+
+#include "../include/DiskDriver.hpp"
 
 namespace ufs
 {
@@ -46,43 +48,42 @@ namespace ufs
         std::cout << rang::style::bold << rang::fg::green << "Info: " << rang::style::reset << msg << std::endl; 
     }
 
-    bool Shell::runCmd()
+    Shell::InstCode Shell::cmdLiteralToInstCode(const std::string& s)
     {
-        if(_splitCmd.size() == 0)
-        {
-            error("No command found.");
-            return false;
-        }
+        if (s == "mount")
+            return InstCode::MOUNT;
 
-        std::string cmd = _splitCmd[0];
+        return InstCode::INVALID;
+    }
 
-        // switch(cmd)
-        // {
-        //     case "mount":
-        //         //mount();
-        //         break;
-        //     // case "unmount":
-        //     //     unmount();
-        //     //     break;
-        //     // case "format":
-        //     //     format();
-        //     //     break;
-        //     // case "cd":
-        //     //     cd();
-        //     //     break;
-        //     // case "ls":
-        //     //     ls();
-        //     //     break;
-        //     // case "rm":
-        //     //     rm();
-        //     //     break;
-        //     // case "mkdir":
-        //     //     mkdir();
-        //     //     break;
-        // }
+    Error Shell::runCmd(InstCode code)
+    {
+         switch(code)
+         {
+         case InstCode::MOUNT:
+             return DiskDriver::getInstance()->mount();
+             // case "unmount":
+             //     unmount();
+             //     break;
+             // case "format":
+             //     format();
+             //     break;
+             // case "cd":
+             //     cd();
+             //     break;
+             // case "ls":
+             //     ls();
+             //     break;
+             // case "rm":
+             //     rm();
+             //     break;
+             // case "mkdir":
+             //     mkdir();
+             //     break;
+         }
 
-
-        return false;
+        warning("Command not found.");
+        return Error::UFS_CMD_NOT_FOUND;
     }
 
     void Shell::loop()
@@ -91,7 +92,7 @@ namespace ufs
         {
             printPrefix();
             parseCmdLiteral();
-            runCmd();
+            runCmd(cmdLiteralToInstCode(this->_splitCmd[0]));
             fflush(stdin);
         }
     }

@@ -6,8 +6,7 @@
 #include <string>
 #include <vector>
 
-#define TTY_BUFFER_SIZE 4096
-#define MAX_CMD_LEN 4096
+#include "Defines.hpp"
 
 namespace ufs
 {
@@ -41,6 +40,13 @@ namespace ufs
         void info(const std::string msg);
 
     private:
+        enum class InstCode
+        {
+            INVALID = 0,
+            MOUNT,
+            UNMOUNT
+        };
+
         char _ttyBuffer[TTY_BUFFER_SIZE];
         std::vector<std::string> _splitCmd;
         int _cmdSeqNum = 0;
@@ -49,6 +55,9 @@ namespace ufs
 
         void parseCmdLiteral();
 
-        bool runCmd();
+        Error runCmd(InstCode code);
+
+        InstCode cmdLiteralToInstCode(const std::string& s);
+
     };
 }
