@@ -44,7 +44,9 @@ namespace ufs
         {
             INVALID = 0,
             MOUNT,
-            UNMOUNT
+            UNMOUNT,
+            FORMAT,
+            CD
         };
 
         char _ttyBuffer[TTY_BUFFER_SIZE];
