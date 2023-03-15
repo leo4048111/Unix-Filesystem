@@ -12,25 +12,8 @@ namespace ufs
 {
     class Shell
     {
-    private:
-        Shell() = default;
-        Shell(const Shell &) = delete;
-        Shell &operator=(const Shell &) = delete;
-
-        static std::unique_ptr<Shell> _inst;
-
+        SINGLETON(Shell)
     public:
-        static Shell *getInstance()
-        {
-            if (_inst.get() == nullptr)
-                _inst.reset(new Shell);
-
-            return _inst.get();
-        }
-
-    public:
-        ~Shell() = default;
-
         void loop();
 
         void error(const std::string msg);
@@ -59,7 +42,6 @@ namespace ufs
 
         Error runCmd(InstCode code);
 
-        InstCode cmdLiteralToInstCode(const std::string& s);
-
+        InstCode cmdLiteralToInstCode(const std::string &s);
     };
 }

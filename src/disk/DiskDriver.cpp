@@ -4,6 +4,14 @@ namespace ufs
 {
     std::unique_ptr<DiskDriver> DiskDriver::_inst;
 
+    DiskDriver::DiskDriver()
+    {
+    }
+
+    DiskDriver::~DiskDriver()
+    {
+    }
+
     // mount disk to file img
     Error DiskDriver::mount()
     {

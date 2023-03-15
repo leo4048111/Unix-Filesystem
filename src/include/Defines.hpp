@@ -2,6 +2,26 @@
 
 namespace ufs
 {
+#define SINGLETON(classname)                          \
+private:                                              \
+    classname();                                    \
+    classname(const classname &) = delete;            \
+    classname &operator=(const classname &) = delete; \
+                                                      \
+    static std::unique_ptr<classname> _inst;          \
+                                                      \
+public:                                               \
+    static classname *getInstance()                   \
+    {                                                 \
+        if (_inst.get() == nullptr)                   \
+            _inst.reset(new classname);               \
+                                                      \
+        return _inst.get();                           \
+    }                                                 \
+                                                      \
+public:                                               \
+    ~classname();
+
     using BYTE = uint8_t;
 
     enum class Error

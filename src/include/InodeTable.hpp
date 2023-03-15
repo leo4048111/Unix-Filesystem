@@ -1,0 +1,7 @@
+namespace ufs
+{
+    class InodeTable
+    {
+
+    };
+}

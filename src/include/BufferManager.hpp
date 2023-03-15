@@ -8,27 +8,12 @@ namespace ufs
 {
     class BufferManager
     {
+        SINGLETON(BufferManager)
+
     private:
         static const size_t NBUF = 30; // number of buffers
 
-    private:
-        BufferManager();
-        BufferManager(const BufferManager &) = delete;
-        BufferManager &operator=(const BufferManager &) = delete;
-
-        static std::unique_ptr<BufferManager> _inst;
-
     public:
-        static BufferManager *getInstance()
-        {
-            if (_inst.get() == nullptr)
-                _inst.reset(new BufferManager);
-
-            return _inst.get();
-        }
-
-    public:
-        ~BufferManager();
 
         Error mount();
 

@@ -9,8 +9,13 @@ namespace ufs
 {
     std::unique_ptr<Shell> Shell::_inst;
 
+    Shell::Shell() {};
+
+    Shell::~Shell() {};
+
     void Shell::printPrefix()
     {
+        std::cout << rang::style::bold << rang::fg::green << "Admin@DESKTOP-55513A7 " << rang::fg::yellow << "~" << rang::style::reset << std::endl;
         putchar('$');
         putchar(' ');
     }
@@ -36,7 +41,7 @@ namespace ufs
     void Shell::error(const std::string msg)
     {
         // std::cout << rang::style::bold << rang::fg::red << "Error: " << rang::style::reset << msg << std::endl;
-        std::cout << "Error: "  << msg << std::endl;
+        std::cout << "Error: " << msg << std::endl;
     }
 
     void Shell::warning(const std::string msg)
