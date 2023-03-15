@@ -33,6 +33,8 @@ namespace ufs
             {
                 _imgMap->write(i * DISK_BLOCK_SIZE, block);
             }
+
+            ec = Error::UFS_IMAGE_NO_FORMAT;
         }
 
         return ec;
@@ -48,5 +50,10 @@ namespace ufs
     Error DiskDriver::writeBlk(int blkno, const DiskBlock &blk)
     {
         return _imgMap->write(blkno * DISK_BLOCK_SIZE, blk);
+    }
+
+    Error DiskDriver::readBlk(int blkno, DiskBlock* blk)
+    {
+        return Error::UFS_NOERR;
     }
 }

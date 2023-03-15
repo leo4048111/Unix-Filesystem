@@ -19,7 +19,12 @@ namespace ufs
 
         Error writeBlk(int blkno, const DiskBlock &blk); // write a disk block to disk
 
+        Error readBlk(int blkno, DiskBlock* blk); // read a disk block from disk
+
+        int devno() const { return _devno; } // get device number
     private:
+        int _devno { 22 }; // device number
+
         std::unique_ptr<ImageMap> _imgMap{nullptr};
     };
 }

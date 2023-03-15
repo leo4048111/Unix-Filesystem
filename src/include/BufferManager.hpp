@@ -1,7 +1,5 @@
 #pragma once
 
-#include <memory>
-
 #include "Buf.hpp"
 
 namespace ufs
@@ -14,7 +12,6 @@ namespace ufs
         static const size_t NBUF = 30; // number of buffers
 
     public:
-
         Error mount();
 
         Error unmount();
@@ -25,8 +22,13 @@ namespace ufs
 
         void brelse(Buf *bp); // release a buffer, put it into free list
 
-        void bwrite(Buf* bp); // clear B_DELWRI B_READ B_DONE B_ERROR flags, write buffer to disk
-   
+        void bwrite(Buf *bp); // clear B_DELWRI B_READ B_DONE B_ERROR flags, write buffer to disk
+
+        Buf *bread(int blkno); // read DiskBlock blkno from disk, return a buffer
+
+        Buf *getBlk(int blkno); // alloc a buffer to read/write DiskBlock blkno
+    
+        void notAvail(Buf *bp); // remove bp from free list
     private:
         Buf _bFreeList;              // head of free list
         Buf _bufs[NBUF];             // buffer control blocks

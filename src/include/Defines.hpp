@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstdint>
+#include <memory>
+
 namespace ufs
 {
 #define SINGLETON(classname)                          \
@@ -28,6 +31,7 @@ public:                                               \
     {
         UFS_NOERR = 0,
         UFS_ERR_MOUNT_FAILED,
+        UFS_IMAGE_NO_FORMAT,
         UFS_CMD_NOT_FOUND
     };
 
@@ -37,4 +41,6 @@ public:                                               \
 #define DISK_BLOCK_SIZE 4096
 #define DISK_SIZE (64 * 1024 * 1024)
 #define DISK_BLOCK_NUM (DISK_SIZE / DISK_BLOCK_SIZE)
+#define DISKINODE_SIZE 64
+#define MAX_INODE_NUM (2 * DISK_BLOCK_SIZE / DISKINODE_SIZE)
 }

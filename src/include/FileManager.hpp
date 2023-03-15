@@ -1,5 +1,3 @@
-#include <memory>
-
 #include "Defines.hpp"
 
 namespace ufs
