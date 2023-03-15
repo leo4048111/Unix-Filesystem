@@ -28,7 +28,7 @@ namespace ufs
         int total_inode_num;            // 总inode数
         int s_inode[MAX_INODE_NUM - 1]; // 空闲inode栈，用于管理inode的分配和回收
         int s_ninode;                   // 直接管理的空闲外存Inode数量
-        char padding[1504];
+        char padding[3560];
 
         int balloc();
         void bfree(int blkNum);
