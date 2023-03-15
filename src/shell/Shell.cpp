@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string.h>
 
-#include "DiskDriver.hpp"
+#include "FileManager.hpp"
 
 namespace ufs
 {
@@ -74,9 +74,9 @@ namespace ufs
         switch (code)
         {
         case InstCode::MOUNT:
-            return DiskDriver::getInstance()->mount();
+            return FileManager::getInstance()->mount();
         case InstCode::UNMOUNT:
-            return DiskDriver::getInstance()->unmount();
+            return FileManager::getInstance()->unmount();
         case InstCode::FORMAT:
             return Error::UFS_NOERR;
             // case "unmount":

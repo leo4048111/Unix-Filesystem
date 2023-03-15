@@ -1,5 +1,5 @@
 #include "FileManager.hpp"
-
+#include "FileSystem.hpp"
 #include "InodeTable.hpp"
 
 namespace ufs
@@ -23,7 +23,12 @@ namespace ufs
 
         InodeTable::getInstance()->clear();
 
-        return Error::UFS_NOERR;
+        Error ec = FileSystem::getInstance()->mount();
+
+        if(ec == Error::UFS_NOERR)
+            _isMounted = true;
+
+        return ec;
     }
 
     Error FileManager::unmount()

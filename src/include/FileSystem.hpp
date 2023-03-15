@@ -20,12 +20,10 @@ namespace ufs
         Error mount();
         Error unmount();
 
-        bool isMounted() const { return _isMounted; }
 
         void loadSuperBlock(SuperBlock& superblock);
+        
     private:
-        bool _isMounted{false};
-
         unsigned int _fsStat { FS_UNINITIALIZED };
     };
 }
