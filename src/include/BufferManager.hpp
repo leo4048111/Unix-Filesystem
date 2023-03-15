@@ -20,6 +20,9 @@ namespace ufs
         void initialize(); // initialize buffer manager
         void flush();      // flush all dirty blocks to disk
 
+        void notAvail(Buf *bp); // remove bp from free list
+
+    public:
         void brelse(Buf *bp); // release a buffer, put it into free list
 
         void bwrite(Buf *bp); // clear B_DELWRI B_READ B_DONE B_ERROR flags, write buffer to disk
@@ -27,8 +30,7 @@ namespace ufs
         Buf *bread(int blkno); // read DiskBlock blkno from disk, return a buffer
 
         Buf *getBlk(int blkno); // alloc a buffer to read/write DiskBlock blkno
-    
-        void notAvail(Buf *bp); // remove bp from free list
+
     private:
         Buf _bFreeList;              // head of free list
         Buf _bufs[NBUF];             // buffer control blocks

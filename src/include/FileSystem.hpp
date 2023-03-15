@@ -1,5 +1,7 @@
 #include "Defines.hpp"
 
+#include "SuperBlock.hpp"
+
 namespace ufs
 {
     class FileSystem
@@ -20,6 +22,7 @@ namespace ufs
 
         bool isMounted() const { return _isMounted; }
 
+        void loadSuperBlock(SuperBlock& superblock);
     private:
         bool _isMounted{false};
 

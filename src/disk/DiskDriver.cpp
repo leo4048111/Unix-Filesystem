@@ -52,8 +52,8 @@ namespace ufs
         return _imgMap->write(blkno * DISK_BLOCK_SIZE, blk);
     }
 
-    Error DiskDriver::readBlk(int blkno, DiskBlock* blk)
+    Error DiskDriver::readBlk(int blkno, DiskBlock& blk)
     {
-        return Error::UFS_NOERR;
+        return _imgMap->read(blkno * DISK_BLOCK_SIZE, blk);
     }
 }

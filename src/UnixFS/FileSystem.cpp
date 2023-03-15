@@ -1,6 +1,6 @@
 #include "FileSystem.hpp"
 #include "BufferManager.hpp"
-#include "SuperBlock.hpp"
+#include "SuperBlockManager.hpp"
 
 namespace ufs
 {
@@ -12,6 +12,13 @@ namespace ufs
 
     FileSystem::~FileSystem()
     {
+    }
+
+    void FileSystem::loadSuperBlock(SuperBlock& superblock)
+    {
+        Buf* bp = BufferManager::getInstance()->bread(0);
+        memcpy_s(&superblock, DISK_BLOCK_SIZE, bp->b_addr, DISK_BLOCK_SIZE);
+        BufferManager::getInstance()->brelse(bp);
     }
 
     Error FileSystem::mount()
@@ -33,5 +40,11 @@ namespace ufs
         _fsStat = FS_STATUS::FS_READY;
 
         SuperBlock tmpSB;
+        loadSuperBlock(tmpSB);
+
+        SuperBlockManager::getInstance()->setSuperBlock(tmpSB);
+        SuperBlockManager::getInstance()->setDirty(false);
+
+        return ec;
     }
 }
