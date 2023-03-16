@@ -18,6 +18,6 @@ namespace ufs
         // before writing to disk, read the block from disk to avoid stashing confliction
         Buf* buf = BufferManager::getInstance()->getBlk(0);
         memcpy_s(buf->b_addr, DISK_BLOCK_SIZE, &_superBlock, DISK_BLOCK_SIZE);
-        BufferManager::getInstance()->bwrite(buf);
+        BufferManager::getInstance()->bdwrite(buf);
     }
 }

@@ -65,16 +65,22 @@ namespace ufs
         }
     }
 
+    void BufferManager::bdwrite(Buf *bp)
+    {
+        bp->b_flags |= (Buf::BufFlag::B_DELWRI | Buf::BufFlag::B_DONE);
+        brelse(bp);
+    }
+
     Buf *BufferManager::getBlk(int blkno)
     {
-        Buf* bp;
+        Buf *bp;
 
         // search device list for available buffer to reuse
         for (bp = _bFreeList.b_forw; bp != &_bFreeList; bp = bp->b_forw)
         {
             if (bp->b_blkno != blkno)
                 continue;
-            
+
             // found a buffer to reuse, remove it from free list
             notAvail(bp);
             return bp;
@@ -83,7 +89,7 @@ namespace ufs
         bp = _bFreeList.av_forw; // get a buffer from the head of free list
         notAvail(bp);
 
-        if(bp->b_flags & Buf::BufFlag::B_DELWRI)
+        if (bp->b_flags & Buf::BufFlag::B_DELWRI)
             bwrite(bp); // if the buffer is dirty, write it to disk
 
         // clear every flag except B_BUSY
@@ -91,7 +97,7 @@ namespace ufs
         bp->b_blkno = blkno;
 
         // if buf is not previously in device buffer list, insert it into device buffer list
-        if(bp->b_dev != DiskDriver::getInstance()->devno())
+        if (bp->b_dev != DiskDriver::getInstance()->devno())
         {
             bp->b_back = &_bFreeList;
             bp->b_forw = _bFreeList.b_forw;
@@ -99,11 +105,11 @@ namespace ufs
             _bFreeList.b_forw = bp;
             bp->b_dev = DiskDriver::getInstance()->devno();
         }
-        
+
         return bp;
     }
 
-    void BufferManager::notAvail(Buf* bp)
+    void BufferManager::notAvail(Buf *bp)
     {
         // remove bp from free list
         bp->av_forw->av_back = bp->av_back;
@@ -112,9 +118,9 @@ namespace ufs
         bp->b_flags |= Buf::BufFlag::B_BUSY;
     }
 
-    Buf* BufferManager::bread(int blkno)
+    Buf *BufferManager::bread(int blkno)
     {
-        Buf* bp;
+        Buf *bp;
         bp = getBlk(blkno);
 
         // if blkno disk block is already cached, reuse it

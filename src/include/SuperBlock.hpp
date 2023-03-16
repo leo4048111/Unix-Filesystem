@@ -12,28 +12,34 @@ namespace ufs
 
         ~SuperBlock();
 
-        SuperBlock(const SuperBlock& block) {
+        SuperBlock(const SuperBlock &block)
+        {
             memcpy_s(this, sizeof(SuperBlock), &block, sizeof(SuperBlock));
         }
 
-        SuperBlock& operator=(const SuperBlock& block) {
+        SuperBlock &operator=(const SuperBlock &block)
+        {
             memcpy_s(this, sizeof(SuperBlock), &block, sizeof(SuperBlock));
             return *this;
         }
 
-        size_t SuperBlockBlockNum = 1;  // 暂时考虑superblock占1个磁盘block
-        int free_inode_num;             // 空闲inode
-        int free_block_bum;             // 空闲盘块数
-        int total_block_num;            // 总盘块数
-        int total_inode_num;            // 总inode数
-        int s_inode[MAX_INODE_NUM - 1]; // 空闲inode栈，用于管理inode的分配和回收
-        int s_ninode;                   // 直接管理的空闲外存Inode数量
-        char padding[3560];
+        int s_isize; /* 外存Inode区占用的盘块数 */
+        int s_fsize; /* 盘块总数 */
 
-        int balloc();
-        void bfree(int blkNum);
-        void bsetOccupy(int blkNum);
-        int ialloc();
-        void ifree(int inodeId);
+        int s_nfree;     /* 直接管理的空闲盘块数量 */
+        int s_free[100]; /* 直接管理的空闲盘块索引表 */
+
+        int s_ninode;     /* 直接管理的空闲外存Inode数量 */
+        int s_inode[100]; /* 直接管理的空闲外存Inode索引表 */
+
+        int s_flock; /* 封锁空闲盘块索引表标志 */
+        int s_ilock; /* 封锁空闲Inode表标志 */
+
+        int s_fmod;         /* 内存中super block副本被修改标志，意味着需要更新外存对应的Super Block */
+        int s_ronly;        /* 本文件系统只能读出 */
+        int s_time;         /* 最近一次更新时间 */
+        char padding[3260]; /* 填充使SuperBlock块大小等于4096字节，占据1个盘块 */
+
+        int balloc(); // allocate a free disk blkno
     };
 }

@@ -37,6 +37,7 @@ public:                                               \
         UFS_NOERR = 0,
         UFS_ERR_MOUNT_FAILED,
         UFS_ERR_NOT_MOUNTED,
+        UFS_ERR_ALREADY_MOUNTED,
         UFS_IMAGE_NO_FORMAT,
         UFS_CMD_NOT_FOUND
     };
