@@ -5,6 +5,7 @@
 
 #include "FileManager.hpp"
 #include "Log.hpp"
+#include "nameof.hpp"
 
 namespace ufs
 {
@@ -92,7 +93,11 @@ namespace ufs
         {
             printPrefix();
             parseCmdLiteral();
-            runCmd(cmdLiteralToInstCode(this->_splitCmd[0]));
+            Error ec = runCmd(cmdLiteralToInstCode(this->_splitCmd[0]));
+            
+            if(ec == Error::UFS_NOERR)
+                UFS_INFO("ok");
+            
             fflush(stdin);
         }
     }

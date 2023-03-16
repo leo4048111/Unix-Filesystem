@@ -1,3 +1,6 @@
 [submodule ".\\third-party\\rang"]
 	path = .\\third-party\\rang
 	url = https://github.com/agauniyal/rang
+[submodule ".\\third-party\\nameof"]
+	path = .\\third-party\\nameof
+	url = https://github.com/Neargye/nameof

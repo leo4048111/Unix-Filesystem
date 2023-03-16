@@ -7,7 +7,7 @@ namespace ufs
 {
 #define SINGLETON(classname)                          \
 private:                                              \
-    classname();                                    \
+    classname();                                      \
     classname(const classname &) = delete;            \
     classname &operator=(const classname &) = delete; \
                                                       \
@@ -24,6 +24,11 @@ public:                                               \
                                                       \
 public:                                               \
     ~classname();
+
+#define INCONSTRUCTIBLE(classname)    \
+    classname() = delete;             \
+    classname(classname &&) = delete; \
+    classname(const classname &) = delete;
 
     using BYTE = uint8_t;
 
