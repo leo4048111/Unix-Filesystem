@@ -1,6 +1,9 @@
 #include "FileManager.hpp"
 #include "FileSystem.hpp"
 #include "InodeTable.hpp"
+#include "SuperBlockManager.hpp"
+
+#include "Log.hpp"
 
 namespace ufs
 {
@@ -33,6 +36,29 @@ namespace ufs
 
     Error FileManager::unmount()
     {
-        return Error::UFS_NOERR;
+        Error ec = Error::UFS_NOERR;
+        if(!isMounted())
+        {
+            ec = Error::UFS_ERR_NOT_MOUNTED;
+            return ec;
+        }
+
+        // Steps to unmount the disk
+        // (1) Flush all dirty InodeCache to disk with InodeCache::flushAllDirtyInodeCache()
+        // (2) Flush SuperBlock cache to disk with SuperBlock::flushSuperBlock()
+        // (3) Close the disk image file with DiskDriver::unmount()
+        InodeTable::getInstance()->flushAllDirtyInodeCache();
+
+        if(SuperBlockManager::getInstance()->isDirty())
+        {
+            SuperBlockManager::getInstance()->flushSuperBlockCache();
+        }
+
+        ec = FileSystem::getInstance()->unmount();
+
+        if(ec == Error::UFS_NOERR)
+            _isMounted = false;
+
+        return ec;
     }
 }

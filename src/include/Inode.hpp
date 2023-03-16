@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Defines.hpp"
-
 #include "DiskInode.hpp"
 
 namespace ufs
@@ -45,7 +44,7 @@ namespace ufs
         static const unsigned int IFBLK = 0x6000;                                                                                   // 块设备特殊类型文件，为0表示常规数据文件
 
         Inode();                    // 构造函数
-        Inode(DiskInode diskInode); // 转换构造函数
+        Inode(DiskInode& diskInode); // 转换构造函数
         int bmap(int lbn);          // 根据逻辑块号查混合索引表，得到物理块号。
     };
 }

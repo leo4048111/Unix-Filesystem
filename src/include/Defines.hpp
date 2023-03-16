@@ -31,16 +31,18 @@ public:                                               \
     {
         UFS_NOERR = 0,
         UFS_ERR_MOUNT_FAILED,
+        UFS_ERR_NOT_MOUNTED,
         UFS_IMAGE_NO_FORMAT,
         UFS_CMD_NOT_FOUND
     };
 
-#define TTY_BUFFER_SIZE 4096
-#define MAX_CMD_LEN 4096
+#define TTY_BUFFER_SIZE 4096ULL
+#define MAX_CMD_LEN 4096ULL
 #define DISK_IMG_FILEPATH "D:\\Projects\\CPP\\Homework\\Unix-FileSystem\\build\\disk.img"
-#define DISK_BLOCK_SIZE 4096
+#define DISK_BLOCK_SIZE 4096ULL
 #define DISK_SIZE (64 * 1024 * 1024)
 #define DISK_BLOCK_NUM (DISK_SIZE / DISK_BLOCK_SIZE)
-#define DISKINODE_SIZE 64
+#define DISKINODE_SIZE 64ULL
 #define MAX_INODE_NUM (2 * DISK_BLOCK_SIZE / DISKINODE_SIZE)
+#define MIXED_ADDR_TABLE_SIZE (10 * sizeof(int))
 }

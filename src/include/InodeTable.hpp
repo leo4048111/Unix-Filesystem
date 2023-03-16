@@ -1,5 +1,6 @@
-#include "Defines.hpp"
+#pragma once
 
+#include "Defines.hpp"
 #include "Inode.hpp"
 
 namespace ufs
@@ -13,6 +14,8 @@ namespace ufs
 
     public:
         void clear();
+
+        void flushAllDirtyInodeCache();
 
     private:
         Inode _inodes[NINODE];

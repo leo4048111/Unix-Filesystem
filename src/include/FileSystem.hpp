@@ -1,6 +1,8 @@
-#include "Defines.hpp"
+#pragma once
 
+#include "Defines.hpp"
 #include "SuperBlock.hpp"
+#include "Inode.hpp"
 
 namespace ufs
 {
@@ -20,8 +22,9 @@ namespace ufs
         Error mount();
         Error unmount();
 
-
         void loadSuperBlock(SuperBlock& superblock);
+
+        void writeInodeCacheBackToDisk(Inode& inode);
         
     private:
         unsigned int _fsStat { FS_UNINITIALIZED };
