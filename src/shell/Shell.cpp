@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "FileManager.hpp"
+#include "Log.hpp"
 
 namespace ufs
 {
@@ -36,24 +37,6 @@ namespace ufs
         }
 
         delete tmpBuffer;
-    }
-
-    void Shell::error(const std::string msg)
-    {
-        // std::cout << rang::style::bold << rang::fg::red << "Error: " << rang::style::reset << msg << std::endl;
-        std::cout << "Error: " << msg << std::endl;
-    }
-
-    void Shell::warning(const std::string msg)
-    {
-        // std::cout << rang::style::bold << rang::fg::yellow << "Warning: " << rang::style::reset << msg << std::endl;
-        std::cout << "Warning: " << msg << std::endl;
-    }
-
-    void Shell::info(const std::string msg)
-    {
-        // std::cout << rang::style::bold << rang::fg::green << "Info: " << rang::style::reset << msg << std::endl;
-        std::cout << "Info: " << msg << std::endl;
     }
 
     Shell::InstCode Shell::cmdLiteralToInstCode(const std::string &s)
@@ -99,7 +82,7 @@ namespace ufs
             //     break;
         }
 
-        warning("Command not found.");
+        Log::warning("Command not found.");
         return Error::UFS_CMD_NOT_FOUND;
     }
 

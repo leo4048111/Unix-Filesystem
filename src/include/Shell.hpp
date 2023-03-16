@@ -13,14 +13,9 @@ namespace ufs
     class Shell
     {
         SINGLETON(Shell)
+        
     public:
         void loop();
-
-        void error(const std::string msg);
-
-        void warning(const std::string msg);
-
-        void info(const std::string msg);
 
     private:
         enum class InstCode
