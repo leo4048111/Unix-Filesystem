@@ -9,6 +9,7 @@ namespace ufs
     public:
         Error mount();
         Error unmount();
+        Error format();
 
         bool isMounted() const { return _isMounted; }
 

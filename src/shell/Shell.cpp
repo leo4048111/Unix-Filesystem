@@ -62,7 +62,7 @@ namespace ufs
         case InstCode::UNMOUNT:
             return FileManager::getInstance()->unmount();
         case InstCode::FORMAT:
-            return Error::UFS_NOERR;
+            return FileManager::getInstance()->format();
             // case "unmount":
             //     unmount();
             //     break;
@@ -83,7 +83,7 @@ namespace ufs
             //     break;
         }
 
-        Log::warning("Command not found.");
+        Log::warning("Command not found");
         return Error::UFS_CMD_NOT_FOUND;
     }
 
@@ -96,7 +96,7 @@ namespace ufs
             Error ec = runCmd(cmdLiteralToInstCode(this->_splitCmd[0]));
             
             if(ec == Error::UFS_NOERR)
-                UFS_INFO("ok");
+                UFS_INFO("OK");
             
             fflush(stdin);
         }

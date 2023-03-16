@@ -61,4 +61,10 @@ namespace ufs
 
         return ec;
     }
+
+    Error FileManager::format()
+    {
+        Error ec = Error::UFS_NOERR;
+        return ec;
+    }
 }
