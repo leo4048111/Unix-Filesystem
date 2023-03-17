@@ -10,6 +10,7 @@ namespace ufs
         Error mount();
         Error unmount();
         Error format();
+        Error ls();
 
         bool isMounted() const { return _isMounted; }
 
