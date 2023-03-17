@@ -45,6 +45,8 @@ namespace ufs
 
         Inode();                    // 构造函数
         Inode(DiskInode& diskInode); // 转换构造函数
+        Inode(const Inode& inode);  // 拷贝构造函数
+        Inode& operator= (const Inode& inode); // 赋值运算符重载
         int bmap(int lbn);          // 根据逻辑块号查混合索引表，得到物理块号。
     };
 }

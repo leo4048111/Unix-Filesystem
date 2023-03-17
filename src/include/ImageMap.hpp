@@ -17,7 +17,7 @@ namespace ufs
         ~ImageMap();
 
         template <typename T>
-        Error write(const size_t offset, T elem);
+        Error write(const size_t offset, T& elem);
 
         template <typename T>
         Error read(const size_t offset, T &elem);
@@ -30,7 +30,7 @@ namespace ufs
     };
 
     template <typename T>
-    Error ImageMap::write(const size_t offset, T elem)
+    Error ImageMap::write(const size_t offset, T& elem)
     {
         Error ec = Error::UFS_NOERR;
         _fs.seekp(offset, std::ios::beg);

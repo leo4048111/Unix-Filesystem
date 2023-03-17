@@ -1,8 +1,23 @@
 #include "Inode.hpp"
 
+#include <string.h>
+
 namespace ufs
 {
-    Inode::Inode(){};
+    Inode::Inode(){
+        memset(this, 0, sizeof(Inode));
+    };
+
+    Inode::Inode(const Inode& inode)
+    {
+        memcpy_s(this, sizeof(Inode), &inode, sizeof(Inode));
+    }
+
+    Inode& Inode::operator= (const Inode& inode)
+    {
+        memcpy_s(this, sizeof(Inode), &inode, sizeof(Inode));
+        return *this;
+    }
 
     Inode::Inode(DiskInode &diskInode)
     {

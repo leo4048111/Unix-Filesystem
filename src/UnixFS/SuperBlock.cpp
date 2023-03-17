@@ -15,4 +15,9 @@ namespace ufs
     {
         return s_free[--s_nfree];
     }
+
+    int SuperBlock::ialloc()
+    {
+        return s_inode[--s_ninode];
+    }
 }

@@ -41,5 +41,6 @@ namespace ufs
         char padding[3260]; /* 填充使SuperBlock块大小等于4096字节，占据1个盘块 */
 
         int balloc(); // allocate a free disk blkno
+        int ialloc(); // allocate a free inode
     };
 }

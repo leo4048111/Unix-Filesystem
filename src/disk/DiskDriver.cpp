@@ -12,6 +12,18 @@ namespace ufs
     {
     }
 
+    Error DiskDriver::clear()
+    {
+        Error ec = Error::UFS_NOERR;
+        DiskBlock block;
+        for (size_t i = 0; i < DISK_BLOCK_NUM; i++)
+        {
+            _imgMap->write(i * DISK_BLOCK_SIZE, block);
+        }
+
+        return ec;
+    }
+
     // mount disk to file img
     Error DiskDriver::mount()
     {
@@ -28,12 +40,7 @@ namespace ufs
         // If the disk img is empty, initialize it
         if (_imgMap->size() < DISK_SIZE)
         {
-            DiskBlock block;
-            for (size_t i = 0; i < DISK_BLOCK_NUM; i++)
-            {
-                _imgMap->write(i * DISK_BLOCK_SIZE, block);
-            }
-
+            clear();
             ec = Error::UFS_IMAGE_NO_FORMAT;
         }
 
@@ -52,7 +59,7 @@ namespace ufs
         return _imgMap->write(blkno * DISK_BLOCK_SIZE, blk);
     }
 
-    Error DiskDriver::readBlk(int blkno, DiskBlock& blk)
+    Error DiskDriver::readBlk(int blkno, DiskBlock &blk)
     {
         return _imgMap->read(blkno * DISK_BLOCK_SIZE, blk);
     }

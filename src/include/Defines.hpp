@@ -49,6 +49,6 @@ public:                                               \
 #define DISK_SIZE (64 * 1024 * 1024)
 #define DISK_BLOCK_NUM (DISK_SIZE / DISK_BLOCK_SIZE)
 #define DISKINODE_SIZE 64ULL
-#define MAX_INODE_NUM (2 * DISK_BLOCK_SIZE / DISKINODE_SIZE)
+#define MAX_INODE_NUM (3 * DISK_BLOCK_SIZE / DISKINODE_SIZE)
 #define MIXED_ADDR_TABLE_SIZE (10 * sizeof(int))
 }

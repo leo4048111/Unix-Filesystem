@@ -4,6 +4,8 @@
 #include "SuperBlockManager.hpp"
 #include "SuperBlock.hpp"
 #include "BufferManager.hpp"
+#include "DirectoryEntry.hpp"
+#include "DiskDriver.hpp"
 
 #include "Log.hpp"
 
@@ -28,7 +30,7 @@ namespace ufs
         // (2) Open the disk image file with DiskDriver::mount()
         // (3) Load SuperBlock to SuperBlock cache
 
-        if(isMounted())
+        if (isMounted())
         {
             Error ec = Error::UFS_ERR_ALREADY_MOUNTED;
             return ec;
@@ -74,13 +76,20 @@ namespace ufs
 
     Error FileManager::format()
     {
+        // Steps to format the disk
+        // (1) clean the disk, set all bytes to 0
+        // (2) initialize SuperBlock and flush it back to disk
+        // (3) initialize InodeTable and flush it back to disk
+        // (4) initialize Inodes' datablocks and flush them back to disk
         Error ec = Error::UFS_NOERR;
 
-        if(!isMounted())
+        if (!isMounted())
         {
             ec = Error::UFS_ERR_NOT_MOUNTED;
             return ec;
         }
+
+        DiskDriver::getInstance()->clear();
 
         // basic structure for disk.img
         // | superblock |  inodes   | data blocks              |
@@ -94,13 +103,12 @@ namespace ufs
         tmpSB.s_time = time(NULL);
 
         // TODO Implement chain memory allocation
-        tmpSB.s_nfree = 50;
-        for (tmpSB.s_nfree = 0; tmpSB.s_nfree < 50; tmpSB.s_nfree++)
-            tmpSB.s_free[tmpSB.s_nfree] = 49 - tmpSB.s_nfree;
+        for (tmpSB.s_nfree = 0; tmpSB.s_nfree < 100; tmpSB.s_nfree++)
+            tmpSB.s_free[tmpSB.s_nfree] = 99 - tmpSB.s_nfree;
 
         // init inode table
-        for (tmpSB.s_ninode = 0; tmpSB.s_ninode < 50; tmpSB.s_ninode++)
-            tmpSB.s_inode[tmpSB.s_ninode] = 49 - tmpSB.s_ninode;
+        for (tmpSB.s_ninode = 0; tmpSB.s_ninode < 100; tmpSB.s_ninode++)
+            tmpSB.s_inode[tmpSB.s_ninode] = 99 - tmpSB.s_ninode;
 
         // init root directory
         int superBlockDiskBlkno = tmpSB.balloc(); // alloc 0# diskblock to store superblock
@@ -111,9 +119,58 @@ namespace ufs
 
         // TODO basic file tree struct
 
+        Inode tmpInode;
+        tmpInode.i_mode = Inode::IFDIR;
+        tmpInode.i_nlink = 1;
+        tmpInode.i_count = 1;
+        tmpInode.i_flag |= (Inode::INodeFlag::IUPD | Inode::INodeFlag::IACC);
+        tmpInode.i_size = 3 * sizeof(DirectoryEntry);
+
+        // init root directory inode
+        int rootDirInodeNo = tmpSB.ialloc();
+        tmpInode.i_addr[0] = tmpSB.balloc();
+        int rootDirDiskBlkno = tmpInode.i_addr[0];
+        InodeTable::getInstance()->iupdate(rootDirInodeNo, tmpInode);
+
+        // init root/home directory inode
+        int homeDirInodeNo = tmpSB.ialloc();
+        tmpInode.i_addr[0] = tmpSB.balloc();
+        tmpInode.i_size = 3 * sizeof(DirectoryEntry);
+        InodeTable::getInstance()->iupdate(rootDirInodeNo, tmpInode);
+
+        // Flush all new inodes back to disk
+        InodeTable::getInstance()->flushAllDirtyInodeCache();
+
+        // TODO: possible size check
+        // // using buffer to write to Datablock
+        // Buf* buf = BufferManager::getInstance()->getBlk(tmpInode.i_addr[0]);
+
+        // init DirectoryEntry structure for root dir
+        DirectoryEntry *dataOffset = (DirectoryEntry *)(rootDirDiskBlkno * DISK_BLOCK_SIZE);
+        DirectoryEntry tmpDirEntry;
+        // . => root dir
+        strcpy(tmpDirEntry._name, "."); // . should point to root dir
+        tmpDirEntry._ino = rootDirInodeNo;
+        DiskDriver::getInstance()->writeOffset((size_t)dataOffset, tmpDirEntry);
+        dataOffset++; // update pointer to next DirectoryEntry
+        // .. => root dir
+        strcpy(tmpDirEntry._name, ".."); // .. should point to root dir
+        tmpDirEntry._ino = rootDirInodeNo;
+        DiskDriver::getInstance()->writeOffset((size_t)dataOffset, tmpDirEntry);
+        dataOffset++; // update pointer to next DirectoryEntry
+
+        // home => root/home
+        strcpy(tmpDirEntry._name, "home"); // .. should point to root dir
+        tmpDirEntry._ino = homeDirInodeNo;
+        DiskDriver::getInstance()->writeOffset((size_t)dataOffset, tmpDirEntry);
+        dataOffset++;
+
         // Flush SuperBlock to disk
         SuperBlockManager::getInstance()->setSuperBlock(tmpSB);
         SuperBlockManager::getInstance()->flushSuperBlockCache();
+
+        // Flush all dirty buffers back to disk
+        BufferManager::getInstance()->flush();
 
         return ec;
     }

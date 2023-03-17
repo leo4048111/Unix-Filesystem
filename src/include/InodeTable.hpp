@@ -17,7 +17,12 @@ namespace ufs
 
         void flushAllDirtyInodeCache();
 
+        void loadInodeCacheFromDisk();
+
+        void iupdate(int inodeId, Inode& inode);
+
     private:
         Inode _inodes[NINODE];
+        char padding[4688];
     };
 }

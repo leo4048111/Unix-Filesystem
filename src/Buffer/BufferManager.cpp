@@ -7,6 +7,7 @@ namespace ufs
 
     BufferManager::BufferManager()
     {
+        memset(this, 0, sizeof(BufferManager));
     }
 
     BufferManager::~BufferManager()
@@ -57,6 +58,7 @@ namespace ufs
         bp->b_flags &= ~(Buf::B_READ | Buf::B_DONE | Buf::B_ERROR | Buf::B_DELWRI);
         bp->b_wcount = DISK_BLOCK_SIZE;
 
+        // bwrite should only be called when a buffer with DELWRI is to be written to disk
         if (flags & Buf::BufFlag::B_DELWRI)
         {
             // write buffer to disk
