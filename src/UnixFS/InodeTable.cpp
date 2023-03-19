@@ -21,6 +21,35 @@ namespace ufs
         _inodes[inodeId] = inode;
     }
 
+    void InodeTable::iread(int inodeId, Inode& inode)
+    {
+        DiskInode dinode;
+        int blkno = 1 + inodeId / (DISK_BLOCK_SIZE / DISKINODE_SIZE);
+        Buf *bp = BufferManager::getInstance()->bread(blkno);
+        uintptr_t destAddr = (uintptr_t)bp->b_addr;
+        destAddr = destAddr + (inodeId % (DISK_BLOCK_SIZE / DISKINODE_SIZE)) * DISKINODE_SIZE;
+        memcpy_s(&dinode, DISKINODE_SIZE, (void*)destAddr, DISKINODE_SIZE);
+        BufferManager::getInstance()->brelse(bp);
+        inode = Inode(dinode);
+        inode.i_count = 1;
+    }
+
+    Inode& InodeTable::iget(int inodeId)
+    {
+        if(!isInodeCacheLoaded(inodeId))
+        {
+            // load inodeId from disk
+            iread(inodeId, _inodes[inodeId]); 
+        }
+
+        return _inodes[inodeId];
+    }
+
+    bool InodeTable::isInodeCacheLoaded(int inodeId)
+    {
+        return _inodes[inodeId].i_count != 0;
+    }
+
     void InodeTable::clear()
     {
         // clear all inode cached in memory

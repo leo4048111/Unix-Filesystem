@@ -15,6 +15,7 @@ namespace ufs
         bool isMounted() const { return _isMounted; }
 
     private:
+        int _curDirInodeNo{0};
         bool _isMounted{false};
     };
 }

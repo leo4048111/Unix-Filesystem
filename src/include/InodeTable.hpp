@@ -19,7 +19,13 @@ namespace ufs
 
         void loadInodeCacheFromDisk();
 
+        bool isInodeCacheLoaded(int inodeId);
+
         void iupdate(int inodeId, Inode& inode);
+
+        Inode& iget(int inodeId);
+
+        void iread(int inodeId, Inode& inode);
 
     private:
         Inode _inodes[NINODE];

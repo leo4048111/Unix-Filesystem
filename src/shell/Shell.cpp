@@ -48,8 +48,12 @@ namespace ufs
             return InstCode::UNMOUNT;
         if (s == "format")
             return InstCode::FORMAT;
+        if (s == "ls")
+            return InstCode::LS;
         if (s == "cd")
             return InstCode::CD;
+        if (s == "touch")
+            return InstCode::TOUCH;
         return InstCode::INVALID;
     }
 
@@ -63,6 +67,8 @@ namespace ufs
             return FileManager::getInstance()->unmount();
         case InstCode::FORMAT:
             return FileManager::getInstance()->format();
+        case InstCode::LS:
+            return FileManager::getInstance()->ls();
             // case "unmount":
             //     unmount();
             //     break;

@@ -24,7 +24,11 @@ namespace ufs
             MOUNT,
             UNMOUNT,
             FORMAT,
-            CD
+            LS,
+            CD,
+            TOUCH,
+            CAT,
+            MKDIR
         };
 
         char _ttyBuffer[TTY_BUFFER_SIZE];

@@ -74,6 +74,40 @@ namespace ufs
         return ec;
     }
 
+    Error FileManager::ls()
+    {
+        Error ec = Error::UFS_NOERR;
+
+        if (!isMounted())
+        {
+            ec = Error::UFS_ERR_NOT_MOUNTED;
+            return ec;
+        }
+
+        // Steps to list all files in current directory
+        // (1) Get current directory inode with InodeTable::iget()
+        // (2) Read all directory entries in current directory inode with Inode::read()
+        // (3) Print all directory entries' file name
+
+        Inode& curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
+
+        // TODO: Properly resolve all data blocks
+        int blkno = curDirInode.i_addr[0];
+        Buf* buf = BufferManager::getInstance()->bread(blkno);
+        DirectoryEntry* pDirEntry = (DirectoryEntry*)buf->b_addr;
+        std::string result;
+        for(size_t i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); ++i)
+        {
+            std::string name = pDirEntry[i]._name;
+            result.append(name);
+            result += " \n"[i == curDirInode.i_size / sizeof(DirectoryEntry) - 1];
+        }
+
+        UFS_LOGOUT(result);
+
+        return ec;
+    }
+
     Error FileManager::format()
     {
         // Steps to format the disk
@@ -136,7 +170,7 @@ namespace ufs
         int homeDirInodeNo = tmpSB.ialloc();
         tmpInode.i_addr[0] = tmpSB.balloc();
         tmpInode.i_size = 3 * sizeof(DirectoryEntry);
-        InodeTable::getInstance()->iupdate(rootDirInodeNo, tmpInode);
+        InodeTable::getInstance()->iupdate(homeDirInodeNo, tmpInode);
 
         // Flush all new inodes back to disk
         InodeTable::getInstance()->flushAllDirtyInodeCache();
@@ -145,6 +179,7 @@ namespace ufs
         // // using buffer to write to Datablock
         // Buf* buf = BufferManager::getInstance()->getBlk(tmpInode.i_addr[0]);
 
+        // TODO: Wrap these bullshit into functions
         // init DirectoryEntry structure for root dir
         DirectoryEntry *dataOffset = (DirectoryEntry *)(rootDirDiskBlkno * DISK_BLOCK_SIZE);
         DirectoryEntry tmpDirEntry;
