@@ -89,14 +89,14 @@ namespace ufs
         // (2) Read all directory entries in current directory inode with Inode::read()
         // (3) Print all directory entries' file name
 
-        Inode& curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
+        Inode &curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
 
         // TODO: Properly resolve all data blocks
         int blkno = curDirInode.i_addr[0];
-        Buf* buf = BufferManager::getInstance()->bread(blkno);
-        DirectoryEntry* pDirEntry = (DirectoryEntry*)buf->b_addr;
+        Buf *buf = BufferManager::getInstance()->bread(blkno);
+        DirectoryEntry *pDirEntry = (DirectoryEntry *)buf->b_addr;
         std::string result;
-        for(size_t i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); ++i)
+        for (size_t i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); ++i)
         {
             std::string name = pDirEntry[i]._name;
             result.append(name);
@@ -104,6 +104,80 @@ namespace ufs
         }
 
         UFS_LOGOUT(result);
+
+        return ec;
+    }
+
+    Error FileManager::mkdir(const std::string &dirName, bool isRoot)
+    {
+        Error ec = Error::UFS_NOERR;
+
+        if (!isMounted())
+        {
+            ec = Error::UFS_ERR_NOT_MOUNTED;
+            return ec;
+        }
+
+        // Steps to create a new directory
+        // (1) Get current directory inode with InodeTable::iget()
+        // (2) Allocate a new inode with InodeTable::ialloc()
+        // (3) Write directory entry to data block pointed by i_addr
+
+        Inode newDirInode;
+        newDirInode.i_mode = Inode::IFDIR;
+        newDirInode.i_nlink = 1;
+        newDirInode.i_count = 1;
+        newDirInode.i_flag |= (Inode::INodeFlag::IUPD | Inode::INodeFlag::IACC);
+        // directory is always initted with "." and ".."
+        newDirInode.i_size = 2 * sizeof(DirectoryEntry);
+
+        // Allocate a new inode
+        SuperBlock &sb = SuperBlockManager::getInstance()->superBlock();
+        int newDirInodeNo = sb.ialloc();
+        newDirInode.i_number = newDirInodeNo;
+        newDirInode.i_addr[0] = sb.balloc();
+        InodeTable::getInstance()->iupdate(newDirInode.i_number, newDirInode);
+
+        // Initialize directory entry
+        DirectoryEntry dirEntry;
+
+        Buf *bp = BufferManager::getInstance()->getBlk(newDirInode.i_addr[0]);
+        DirectoryEntry *pDirEntry = (DirectoryEntry *)bp->b_addr;
+
+        // init "."
+        strcpy(dirEntry._name, ".");
+        dirEntry._ino = newDirInodeNo;
+        memcpy_s(pDirEntry, sizeof(DirectoryEntry), &dirEntry, sizeof(DirectoryEntry));
+        pDirEntry++;
+
+        // init ".."
+        strcpy(dirEntry._name, "..");
+        if (!isRoot)
+            dirEntry._ino = _curDirInodeNo; // .. should point to current directory
+        else
+            dirEntry._ino = newDirInodeNo; // root directory's .. should point to itself
+        memcpy_s(pDirEntry, sizeof(DirectoryEntry), &dirEntry, sizeof(DirectoryEntry));
+
+        BufferManager::getInstance()->bdwrite(bp);
+
+        // update current directory inode
+        if (!isRoot)
+        {
+            // Get current directory Inode
+            Inode &curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
+            curDirInode.i_flag |= (Inode::INodeFlag::IUPD | Inode::INodeFlag::IACC);
+
+            bp = BufferManager::getInstance()->getBlk(curDirInode.i_addr[0]);
+            pDirEntry = (DirectoryEntry *)bp->b_addr;
+            for (int i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); i++)
+                pDirEntry++;
+            strcpy(dirEntry._name, dirName.c_str());
+            dirEntry._ino = newDirInodeNo;
+            memcpy_s(pDirEntry, sizeof(DirectoryEntry), &dirEntry, sizeof(DirectoryEntry));
+            curDirInode.i_size += sizeof(DirectoryEntry);
+            InodeTable::getInstance()->iupdate(curDirInode.i_number, curDirInode);
+            BufferManager::getInstance()->bdwrite(bp);
+        }
 
         return ec;
     }
@@ -151,57 +225,18 @@ namespace ufs
             tmpSB.balloc(),
             tmpSB.balloc()}; // aloc 1# ~ 3# diskblock to store inode pool
 
-        // TODO basic file tree struct
+        SuperBlockManager::getInstance()->setSuperBlock(tmpSB);
 
-        Inode tmpInode;
-        tmpInode.i_mode = Inode::IFDIR;
-        tmpInode.i_nlink = 1;
-        tmpInode.i_count = 1;
-        tmpInode.i_flag |= (Inode::INodeFlag::IUPD | Inode::INodeFlag::IACC);
-        tmpInode.i_size = 3 * sizeof(DirectoryEntry);
-
-        // init root directory inode
-        int rootDirInodeNo = tmpSB.ialloc();
-        tmpInode.i_addr[0] = tmpSB.balloc();
-        int rootDirDiskBlkno = tmpInode.i_addr[0];
-        InodeTable::getInstance()->iupdate(rootDirInodeNo, tmpInode);
-
-        // init root/home directory inode
-        int homeDirInodeNo = tmpSB.ialloc();
-        tmpInode.i_addr[0] = tmpSB.balloc();
-        tmpInode.i_size = 3 * sizeof(DirectoryEntry);
-        InodeTable::getInstance()->iupdate(homeDirInodeNo, tmpInode);
+        mkdir("root", true);
+        mkdir("home");
+        mkdir("usr");
+        mkdir("bin");
+        mkdir("etc");
 
         // Flush all new inodes back to disk
         InodeTable::getInstance()->flushAllDirtyInodeCache();
 
-        // TODO: possible size check
-        // // using buffer to write to Datablock
-        // Buf* buf = BufferManager::getInstance()->getBlk(tmpInode.i_addr[0]);
-
-        // TODO: Wrap these bullshit into functions
-        // init DirectoryEntry structure for root dir
-        DirectoryEntry *dataOffset = (DirectoryEntry *)(rootDirDiskBlkno * DISK_BLOCK_SIZE);
-        DirectoryEntry tmpDirEntry;
-        // . => root dir
-        strcpy(tmpDirEntry._name, "."); // . should point to root dir
-        tmpDirEntry._ino = rootDirInodeNo;
-        DiskDriver::getInstance()->writeOffset((size_t)dataOffset, tmpDirEntry);
-        dataOffset++; // update pointer to next DirectoryEntry
-        // .. => root dir
-        strcpy(tmpDirEntry._name, ".."); // .. should point to root dir
-        tmpDirEntry._ino = rootDirInodeNo;
-        DiskDriver::getInstance()->writeOffset((size_t)dataOffset, tmpDirEntry);
-        dataOffset++; // update pointer to next DirectoryEntry
-
-        // home => root/home
-        strcpy(tmpDirEntry._name, "home"); // .. should point to root dir
-        tmpDirEntry._ino = homeDirInodeNo;
-        DiskDriver::getInstance()->writeOffset((size_t)dataOffset, tmpDirEntry);
-        dataOffset++;
-
         // Flush SuperBlock to disk
-        SuperBlockManager::getInstance()->setSuperBlock(tmpSB);
         SuperBlockManager::getInstance()->flushSuperBlockCache();
 
         // Flush all dirty buffers back to disk

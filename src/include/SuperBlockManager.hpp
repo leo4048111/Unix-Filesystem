@@ -16,6 +16,10 @@ namespace ufs
 
         void flushSuperBlockCache();
 
+        SuperBlock& superBlock() {
+            return _superBlock;
+        }
+
         bool isDirty() const { return _dirty; }
 
         void setDirty(bool dirty) { _dirty = dirty; }

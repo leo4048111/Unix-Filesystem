@@ -11,6 +11,7 @@ namespace ufs
         Error unmount();
         Error format();
         Error ls();
+        Error mkdir(const std::string& dirName, bool isRoot = false);
 
         bool isMounted() const { return _isMounted; }
 
