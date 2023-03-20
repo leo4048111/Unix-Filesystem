@@ -112,7 +112,7 @@ namespace ufs
             if(ec == Error::UFS_NOERR)
                 UFS_INFO("OK");
             else if(ec == Error::UFS_ERR_INVALID_COMMAND_ARG)
-                UFS_INFO("Invalid arguments");
+                UFS_ERROR("Invalid arguments");
             
             fflush(stdin);
         }
