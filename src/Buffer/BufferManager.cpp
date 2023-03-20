@@ -54,8 +54,6 @@ namespace ufs
 
             brelse(bp); // put bp into free list
         }
-
-        debug_print("initialize");
     }
 
     void BufferManager::bwrite(Buf *bp)
@@ -126,7 +124,6 @@ namespace ufs
 
         bp->b_flags |= Buf::BufFlag::B_BUSY;
 
-        debug_print("notAvail");
     }
 
     Buf *BufferManager::bread(int blkno)
@@ -144,7 +141,6 @@ namespace ufs
         DiskDriver::getInstance()->readBlk(blkno, *bp->b_addr);
         bp->b_wcount |= Buf::BufFlag::B_DONE;
 
-        debug_print("bread");
 
         return bp;
     }
@@ -173,7 +169,6 @@ namespace ufs
             _bFreeList.av_back = bp;
         }
 
-        debug_print("brelse");
     }
 
     void BufferManager::debug_print(const char* msg)

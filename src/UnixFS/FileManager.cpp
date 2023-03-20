@@ -97,6 +97,7 @@ namespace ufs
         int blkno = curDirInode.i_addr[0];
         Buf *buf = BufferManager::getInstance()->bread(blkno);
         DirectoryEntry *pDirEntry = (DirectoryEntry *)buf->b_addr;
+        BufferManager::getInstance()->brelse(buf);
         std::string result;
         for (size_t i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); ++i)
         {
@@ -115,6 +116,7 @@ namespace ufs
         const Inode& curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
         Buf* bp = BufferManager::getInstance()->bread(curDirInode.i_addr[0]);
         DirectoryEntry* pDirEntry = (DirectoryEntry*)bp->b_addr;
+        BufferManager::getInstance()->brelse(bp);
         for(int i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); ++i)
         {
             if (strcmp(pDirEntry->_name, dirName.c_str()) == 0)
