@@ -31,7 +31,13 @@ namespace ufs
         for (Buf *bp = _bFreeList.av_forw; bp != &_bFreeList; bp = bp->av_forw)
             if (bp->b_flags & Buf::BufFlag::B_DELWRI)
                 bwrite(bp); // find every buffer which has B_DELWRI flag, write it to disk
+
+        // for (Buf *bp = _bFreeList.av_back; bp != &_bFreeList; bp = bp->av_back)
+        //     if (bp->b_flags & Buf::BufFlag::B_DELWRI)
+        //         bwrite(bp); // find every buffer which has B_DELWRI flag, write it to disk
     }
+
+    // 0x27d2508
 
     void BufferManager::initialize()
     {
@@ -48,6 +54,8 @@ namespace ufs
 
             brelse(bp); // put bp into free list
         }
+
+        debug_print("initialize");
     }
 
     void BufferManager::bwrite(Buf *bp)
@@ -77,8 +85,7 @@ namespace ufs
     {
         Buf *bp;
 
-        // search device list for available buffer to reuse
-        for (bp = _bFreeList.b_forw; bp != &_bFreeList; bp = bp->b_forw)
+        for (bp = _bFreeList.av_forw; bp != &_bFreeList; bp = bp->av_forw)
         {
             if (bp->b_blkno != blkno)
                 continue;
@@ -118,6 +125,8 @@ namespace ufs
         bp->av_back->av_forw = bp->av_forw;
 
         bp->b_flags |= Buf::BufFlag::B_BUSY;
+
+        debug_print("notAvail");
     }
 
     Buf *BufferManager::bread(int blkno)
@@ -135,6 +144,8 @@ namespace ufs
         DiskDriver::getInstance()->readBlk(blkno, *bp->b_addr);
         bp->b_wcount |= Buf::BufFlag::B_DONE;
 
+        debug_print("bread");
+
         return bp;
     }
 
@@ -147,9 +158,35 @@ namespace ufs
             Buf::BufFlag::B_ASYNC);
 
         // insert bp into free list tail
-        _bFreeList.av_back->av_forw = bp;
-        bp->av_back = _bFreeList.av_back;
-        bp->av_forw = &_bFreeList;
-        _bFreeList.av_back = bp;
+
+        if (_bFreeList.av_back == &_bFreeList)
+        {
+            _bFreeList.av_back = _bFreeList.av_forw = bp;
+            bp->av_forw = &_bFreeList;
+            bp->av_back = &_bFreeList;
+        }
+        else
+        {
+            _bFreeList.av_back->av_forw = bp;
+            bp->av_back = _bFreeList.av_back;
+            bp->av_forw = &_bFreeList;
+            _bFreeList.av_back = bp;
+        }
+
+        debug_print("brelse");
+    }
+
+    void BufferManager::debug_print(const char* msg)
+    {
+        printf("%s\n", msg);
+        printf("av_forw: ");
+        for(Buf* bp = _bFreeList.av_forw; bp != &_bFreeList; bp = bp->av_forw)
+            printf("%d ", bp->b_blkno);
+        printf("\n");
+
+        printf("av_back: ");
+        for(Buf* bp = _bFreeList.av_back; bp != &_bFreeList; bp = bp->av_back)
+            printf("%d ", bp->b_blkno);
+        printf("\n");
     }
 }
