@@ -167,6 +167,7 @@ namespace ufs
             Inode &curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
             curDirInode.i_flag |= (Inode::INodeFlag::IUPD | Inode::INodeFlag::IACC);
 
+            // write new directory entry to disk block
             bp = BufferManager::getInstance()->getBlk(curDirInode.i_addr[0]);
             pDirEntry = (DirectoryEntry *)bp->b_addr;
             for (int i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); i++)

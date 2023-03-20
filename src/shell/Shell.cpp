@@ -50,6 +50,8 @@ namespace ufs
             return InstCode::FORMAT;
         if (s == "ls")
             return InstCode::LS;
+        if (s == "mkdir")
+            return InstCode::MKDIR;
         if (s == "cd")
             return InstCode::CD;
         if (s == "touch")
@@ -69,6 +71,12 @@ namespace ufs
             return FileManager::getInstance()->format();
         case InstCode::LS:
             return FileManager::getInstance()->ls();
+        case InstCode::MKDIR:
+        {
+            if(_splitCmd.size() !=2 )
+                return Error::UFS_ERR_INVALID_COMMAND_ARG;
+            return FileManager::getInstance()->mkdir(_splitCmd[1]);
+        }
             // case "unmount":
             //     unmount();
             //     break;
@@ -103,6 +111,8 @@ namespace ufs
             
             if(ec == Error::UFS_NOERR)
                 UFS_INFO("OK");
+            else if(ec == Error::UFS_ERR_INVALID_COMMAND_ARG)
+                UFS_INFO("Invalid arguments");
             
             fflush(stdin);
         }
