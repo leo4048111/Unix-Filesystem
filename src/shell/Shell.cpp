@@ -11,9 +11,9 @@ namespace ufs
 {
     std::unique_ptr<Shell> Shell::_inst;
 
-    Shell::Shell() {};
+    Shell::Shell(){};
 
-    Shell::~Shell() {};
+    Shell::~Shell(){};
 
     void Shell::printPrefix()
     {
@@ -73,9 +73,15 @@ namespace ufs
             return FileManager::getInstance()->ls();
         case InstCode::MKDIR:
         {
-            if(_splitCmd.size() !=2 )
+            if (_splitCmd.size() != 2)
                 return Error::UFS_ERR_INVALID_COMMAND_ARG;
             return FileManager::getInstance()->mkdir(_splitCmd[1]);
+        }
+        case InstCode::CD:
+        {
+            if (_splitCmd.size() != 2)
+                return Error::UFS_ERR_INVALID_COMMAND_ARG;
+            return FileManager::getInstance()->cd(_splitCmd[1]);
         }
             // case "unmount":
             //     unmount();
@@ -108,12 +114,18 @@ namespace ufs
             printPrefix();
             parseCmdLiteral();
             Error ec = runCmd(cmdLiteralToInstCode(this->_splitCmd[0]));
-            
-            if(ec == Error::UFS_NOERR)
+
+            if (ec == Error::UFS_NOERR)
                 UFS_INFO("OK");
-            else if(ec == Error::UFS_ERR_INVALID_COMMAND_ARG)
+            else if (ec == Error::UFS_ERR_INVALID_COMMAND_ARG)
                 UFS_ERROR("Invalid arguments");
-            
+            else if (ec == Error::UFS_ERR_NOT_MOUNTED)
+                UFS_ERROR("File system not mounted");
+            else if (ec == Error::UFS_ERR_NOT_A_DIR)
+                UFS_ERROR("Not a directory");
+            else if (ec == Error::UFS_ERR_NO_SUCH_DIR_OR_FILE)
+                UFS_ERROR("No such file or directory");
+
             fflush(stdin);
         }
     }

@@ -43,6 +43,8 @@ namespace ufs
         if (ec == Error::UFS_NOERR)
             _isMounted = true;
 
+        _curDirInodeNo = 0;
+
         return ec;
     }
 
@@ -106,6 +108,29 @@ namespace ufs
         UFS_LOGOUT(result);
 
         return ec;
+    }
+
+    Error FileManager::cd(const std::string& dirName)
+    {
+        const Inode& curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
+        Buf* bp = BufferManager::getInstance()->bread(curDirInode.i_addr[0]);
+        DirectoryEntry* pDirEntry = (DirectoryEntry*)bp->b_addr;
+        for(int i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); ++i)
+        {
+            if (strcmp(pDirEntry->_name, dirName.c_str()) == 0)
+            {
+                const Inode& dirInode = InodeTable::getInstance()->iget(pDirEntry->_ino);
+                if(dirInode.i_mode != Inode::IFDIR)
+                    return Error::UFS_ERR_NOT_A_DIR;
+
+                _curDirInodeNo = pDirEntry->_ino;
+                return Error::UFS_NOERR;
+            }
+
+            pDirEntry++;
+        }
+
+        return Error::UFS_ERR_NO_SUCH_DIR_OR_FILE;
     }
 
     Error FileManager::mkdir(const std::string &dirName, bool isRoot)
