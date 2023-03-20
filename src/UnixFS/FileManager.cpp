@@ -193,7 +193,7 @@ namespace ufs
             curDirInode.i_flag |= (Inode::INodeFlag::IUPD | Inode::INodeFlag::IACC);
 
             // write new directory entry to disk block
-            bp = BufferManager::getInstance()->getBlk(curDirInode.i_addr[0]);
+            bp = BufferManager::getInstance()->bread(curDirInode.i_addr[0]);
             pDirEntry = (DirectoryEntry *)bp->b_addr;
             for (int i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); i++)
                 pDirEntry++;
@@ -233,7 +233,7 @@ namespace ufs
         SuperBlock tmpSB;
         tmpSB.s_isize = 3;
         tmpSB.s_fsize = DISK_BLOCK_NUM;
-        tmpSB.s_fmod = 1;
+        tmpSB.s_fmod = true;
         tmpSB.s_time = time(NULL);
 
         // TODO Implement chain memory allocation
@@ -258,6 +258,7 @@ namespace ufs
         mkdir("usr");
         mkdir("bin");
         mkdir("etc");
+        mkdir("dev");
 
         // Flush all new inodes back to disk
         InodeTable::getInstance()->flushAllDirtyInodeCache();

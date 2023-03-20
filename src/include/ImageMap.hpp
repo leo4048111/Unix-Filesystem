@@ -35,6 +35,7 @@ namespace ufs
         Error ec = Error::UFS_NOERR;
         _fs.seekp(offset, std::ios::beg);
         _fs.write(reinterpret_cast<const char *>(&elem), sizeof(T));
+        _fs.seekp(0, std::ios::beg);
         return ec;
     }
 
@@ -44,6 +45,7 @@ namespace ufs
         Error ec = Error::UFS_NOERR;
         _fs.seekg(offset, std::ios::beg);
         _fs.read(reinterpret_cast<char *>(&elem), sizeof(T));
+        _fs.seekg(0, std::ios::beg);
         return ec;
     }
 }

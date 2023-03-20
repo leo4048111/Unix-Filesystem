@@ -10,6 +10,7 @@ namespace ufs
 
     InodeTable::InodeTable()
     {
+        memset(this, 0, sizeof(InodeTable));
     }
 
     InodeTable::~InodeTable()
@@ -58,20 +59,31 @@ namespace ufs
 
     void InodeTable::flushAllDirtyInodeCache()
     {
-        for (size_t i = 0; i < NINODE; i++)
+        // Flush everything into disk(for debugging purposes)
+        // for (size_t i = 0; i < NINODE; i++)
+        // {
+        //     if ((_inodes[i].i_count != 0) &&
+        //         (_inodes[i].i_flag & (Inode::INodeFlag::IUPD | Inode::INodeFlag::IACC)))
+        //     {
+        //         FileSystem::getInstance()->writeInodeCacheBackToDisk(_inodes[i]);
+        //     }
+        // }
+
+        DiskBlock* pPartition = (DiskBlock*)this;
+
+        for(size_t i = 1; i <= 3; i++)
         {
-            if ((_inodes[i].i_count != 0) &&
-                (_inodes[i].i_flag & (Inode::INodeFlag::IUPD | Inode::INodeFlag::IACC)))
-            {
-                FileSystem::getInstance()->writeInodeCacheBackToDisk(_inodes[i]);
-            }
+            Buf* bp = BufferManager::getInstance()->getBlk(i);
+            memcpy_s(bp->b_addr, DISK_BLOCK_SIZE, pPartition, DISK_BLOCK_SIZE);
+            pPartition++;
+            BufferManager::getInstance()->bdwrite(bp);
         }
     }
 
     void InodeTable::loadInodeCacheFromDisk()
     {
         Buf *bp;
-        // read data from 1# disk block
+        // read data from 1# ~ 3# disk block
         for (size_t i = 1; i <= 3; i++)
         {
             bp = BufferManager::getInstance()->bread(i);

@@ -20,13 +20,10 @@ namespace ufs
             return _superBlock;
         }
 
-        bool isDirty() const { return _dirty; }
-
-        void setDirty(bool dirty) { _dirty = dirty; }
+        bool isDirty() const { return _superBlock.s_fmod; }
         
     public:
 
         SuperBlock _superBlock;
-        bool _dirty{false};
     };
 }

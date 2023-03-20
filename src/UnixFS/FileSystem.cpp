@@ -19,6 +19,7 @@ namespace ufs
         Buf *bp = BufferManager::getInstance()->bread(0);
         memcpy_s(&superblock, DISK_BLOCK_SIZE, bp->b_addr, DISK_BLOCK_SIZE);
         BufferManager::getInstance()->brelse(bp);
+        superblock.s_fmod = false;
     }
 
     void FileSystem::writeInodeCacheBackToDisk(Inode &inode)
@@ -60,7 +61,6 @@ namespace ufs
         loadSuperBlock(tmpSB);
 
         SuperBlockManager::getInstance()->setSuperBlock(tmpSB);
-        SuperBlockManager::getInstance()->setDirty(false);
 
         return ec;
     }

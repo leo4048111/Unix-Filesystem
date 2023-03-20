@@ -12,6 +12,8 @@ namespace ufs
         }
 
         _path = path;
+        _fs.seekg(0, std::ios::beg);
+        _fs.seekp(0, std::ios::beg);
     }
 
     ImageMap::~ImageMap()

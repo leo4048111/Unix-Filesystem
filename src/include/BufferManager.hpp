@@ -36,5 +36,7 @@ namespace ufs
         Buf _bFreeList;              // head of free list
         Buf _bufs[NBUF];             // buffer control blocks
         DiskBlock _diskBlocks[NBUF]; // disk blocks
+
+        void debug_print(const char* msg);
     };
 }
