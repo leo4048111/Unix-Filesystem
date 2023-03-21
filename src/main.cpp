@@ -1,8 +1,5 @@
 #include "rang.hpp"
-
-#define UFS_DEBUG
 #include "Log.hpp"
-
 #include "Shell.hpp"
 
 int main()

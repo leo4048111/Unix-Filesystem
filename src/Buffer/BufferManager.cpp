@@ -55,6 +55,8 @@ namespace ufs
 
             brelse(bp); // put bp into free list
         }
+
+        UFS_DEBUG_INFO("Initialized all buffers.");
     }
 
     void BufferManager::bwrite(Buf *bp)
@@ -71,17 +73,21 @@ namespace ufs
             // write buffer to disk
             DiskDriver::getInstance()->writeBlk(bp->b_blkno, *bp->b_addr);
             bp->b_flags |= Buf::B_DONE;
+
+            UFS_DEBUG_INFO(Log::format("bwrite: write buffer to disk, blkno: %d", bp->b_blkno));
         }
     }
 
     void BufferManager::bdwrite(Buf *bp)
     {
+        UFS_DEBUG_INFO(Log::format("bdwrite: flagged and released buffer %d", bp->b_blkno));
         bp->b_flags |= (Buf::BufFlag::B_DELWRI | Buf::BufFlag::B_DONE);
         brelse(bp);
     }
 
     Buf *BufferManager::getBlk(int blkno)
     {
+        UFS_DEBUG_INFO(Log::format("getBlk: blkno=%d", blkno));
         Buf *bp;
 
         for (bp = _bFreeList.av_forw; bp != &_bFreeList; bp = bp->av_forw)

@@ -20,10 +20,13 @@ namespace ufs
         memcpy_s(&superblock, DISK_BLOCK_SIZE, bp->b_addr, DISK_BLOCK_SIZE);
         BufferManager::getInstance()->brelse(bp);
         superblock.s_fmod = false;
+
+        UFS_DEBUG_INFO("Superblock loaded from disk");
     }
 
     void FileSystem::writeInodeCacheBackToDisk(Inode &inode)
     {
+        UFS_DEBUG_INFO(Log::format("Preparing to write inode %d back to disk", inode.i_number));
         // convert Inode to DiskInode
         DiskInode dInode(inode);
 
@@ -38,7 +41,8 @@ namespace ufs
         memcpy_s(destAddr, DISKINODE_SIZE, &dInode, DISKINODE_SIZE);
         BufferManager::getInstance()->bdwrite(bp);
         inode.i_flag &= ~(Inode::INodeFlag::IUPD | Inode::INodeFlag::IACC);
-        printf("Wrote inode %d back to disk\n", inode.i_number);
+        
+        UFS_DEBUG_INFO(Log::format("Inode %d written back to disk", inode.i_number));
     }
 
     Error FileSystem::mount()

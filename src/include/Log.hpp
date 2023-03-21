@@ -5,6 +5,8 @@
 
 #include <string>
 
+#define UFS_DEBUG
+
 namespace ufs
 {
     class Log

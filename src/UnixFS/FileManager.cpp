@@ -106,6 +106,8 @@ namespace ufs
             result += " \n"[i == curDirInode.i_size / sizeof(DirectoryEntry) - 1];
         }
 
+        UFS_LOGOUT(result);
+
         return ec;
     }
 

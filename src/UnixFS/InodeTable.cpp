@@ -24,6 +24,8 @@ namespace ufs
 
     void InodeTable::iread(int inodeId, Inode& inode)
     {
+        UFS_DEBUG_INFO(Log::format("Preparing to iread inode %d from disk", inodeId));
+
         DiskInode dinode;
         int blkno = 1 + inodeId / (DISK_BLOCK_SIZE / DISKINODE_SIZE);
         Buf *bp = BufferManager::getInstance()->bread(blkno);
@@ -33,10 +35,13 @@ namespace ufs
         BufferManager::getInstance()->brelse(bp);
         inode = Inode(dinode);
         inode.i_count = 1;
+
+        UFS_DEBUG_INFO(Log::format("End ireading inode %d from disk", inodeId));
     }
 
     Inode& InodeTable::iget(int inodeId)
     {
+        UFS_DEBUG_INFO(Log::format("iget inode %d", inodeId));
         if(!isInodeCacheLoaded(inodeId))
         {
             // load inodeId from disk
@@ -54,11 +59,13 @@ namespace ufs
     void InodeTable::clear()
     {
         // clear all inode cached in memory
+        UFS_DEBUG_INFO("Clearing all inode cache...");
         memset(this, 0, sizeof(InodeTable));
     }
 
     void InodeTable::flushAllDirtyInodeCache()
     {
+        UFS_DEBUG_INFO("Flushing all dirty inode cache to disk...");
         for (size_t i = 0; i < NINODE; i++)
         {
             if ((_inodes[i].i_count != 0) &&
@@ -67,7 +74,7 @@ namespace ufs
                 FileSystem::getInstance()->writeInodeCacheBackToDisk(_inodes[i]);
             }
         }
-
+        UFS_DEBUG_INFO("Flush complete.");
         // DiskBlock* pPartition = (DiskBlock*)this;
 
         // for(size_t i = 1; i <= 3; i++)
