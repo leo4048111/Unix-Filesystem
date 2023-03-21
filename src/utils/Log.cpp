@@ -1,4 +1,3 @@
-#include "rang.hpp"
 #include "Log.hpp"
 
 namespace ufs

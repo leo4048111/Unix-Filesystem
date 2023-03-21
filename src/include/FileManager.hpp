@@ -1,3 +1,6 @@
+#pragma once
+
+#include "Log.hpp"
 #include "Defines.hpp"
 
 namespace ufs

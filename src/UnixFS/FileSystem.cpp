@@ -30,12 +30,15 @@ namespace ufs
         // get the block number which should be written back to disk
         int blkno = 1 + inode.i_number / (DISK_BLOCK_SIZE / DISKINODE_SIZE);
         Buf *bp = BufferManager::getInstance()->bread(blkno);
-        // get the starting address of the inode in the block
-        uintptr_t destAddr = (uintptr_t)bp->b_addr;
-        destAddr = destAddr + (inode.i_number % (DISK_BLOCK_SIZE / DISKINODE_SIZE)) * DISKINODE_SIZE;
+    
+        DiskInode* destAddr = (DiskInode*)bp->b_addr;
+        destAddr += (inode.i_number % (DISK_BLOCK_SIZE / DISKINODE_SIZE));
+
         // memcpy the DiskInode to the block, then call bwrite to write buffer back to disk
-        memcpy_s((void*)destAddr, DISKINODE_SIZE, &dInode, DISKINODE_SIZE);
+        memcpy_s(destAddr, DISKINODE_SIZE, &dInode, DISKINODE_SIZE);
         BufferManager::getInstance()->bdwrite(bp);
+        inode.i_flag &= ~(Inode::INodeFlag::IUPD | Inode::INodeFlag::IACC);
+        printf("Wrote inode %d back to disk\n", inode.i_number);
     }
 
     Error FileSystem::mount()

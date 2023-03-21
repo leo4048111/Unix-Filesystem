@@ -1,3 +1,4 @@
+#include "Log.hpp"
 #include "BufferManager.hpp"
 #include "DiskDriver.hpp"
 
@@ -141,6 +142,7 @@ namespace ufs
         DiskDriver::getInstance()->readBlk(blkno, *bp->b_addr);
         bp->b_wcount |= Buf::BufFlag::B_DONE;
 
+        UFS_DEBUG_INFO(Log::format("bread: blkno=%d", blkno));
 
         return bp;
     }

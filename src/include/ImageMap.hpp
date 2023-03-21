@@ -1,11 +1,13 @@
 #pragma once
 
+#include "Log.hpp"
+#include "Defines.hpp"
+
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
 
-#include "Defines.hpp"
 
 namespace ufs
 {

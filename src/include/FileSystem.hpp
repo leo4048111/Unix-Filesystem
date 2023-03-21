@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Log.hpp"
 #include "Defines.hpp"
 #include "SuperBlock.hpp"
 #include "Inode.hpp"

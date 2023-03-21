@@ -1,3 +1,5 @@
+#include "Log.hpp"
+
 #include "FileManager.hpp"
 #include "FileSystem.hpp"
 #include "InodeTable.hpp"
@@ -6,8 +8,6 @@
 #include "BufferManager.hpp"
 #include "DirectoryEntry.hpp"
 #include "DiskDriver.hpp"
-
-#include "Log.hpp"
 
 #include <time.h>
 
@@ -105,8 +105,6 @@ namespace ufs
             result.append(name);
             result += " \n"[i == curDirInode.i_size / sizeof(DirectoryEntry) - 1];
         }
-
-        UFS_LOGOUT(result);
 
         return ec;
     }

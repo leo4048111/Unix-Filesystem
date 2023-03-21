@@ -1,3 +1,4 @@
+#include "Log.hpp"
 #include "DiskInode.hpp"
 #include "Inode.hpp"
 #include "Defines.hpp"

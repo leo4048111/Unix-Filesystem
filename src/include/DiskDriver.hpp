@@ -1,10 +1,11 @@
 #pragma once
 
-#include <memory>
-
+#include "Log.hpp"
 #include "Defines.hpp"
 #include "ImageMap.hpp"
 #include "DiskBlock.hpp"
+
+#include <memory>
 
 namespace ufs
 {

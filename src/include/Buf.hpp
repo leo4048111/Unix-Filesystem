@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Log.hpp"
 #include "DiskBlock.hpp"
 
 namespace ufs

@@ -1,11 +1,9 @@
+#include "Log.hpp"
 #include "Shell.hpp"
+#include "FileManager.hpp"
 
 #include <iostream>
 #include <string.h>
-
-#include "FileManager.hpp"
-#include "Log.hpp"
-#include "nameof.hpp"
 
 namespace ufs
 {

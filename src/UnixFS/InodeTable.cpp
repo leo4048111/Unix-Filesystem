@@ -54,30 +54,29 @@ namespace ufs
     void InodeTable::clear()
     {
         // clear all inode cached in memory
-        memset(_inodes, 0, sizeof(_inodes));
+        memset(this, 0, sizeof(InodeTable));
     }
 
     void InodeTable::flushAllDirtyInodeCache()
     {
-        // Flush everything into disk(for debugging purposes)
-        // for (size_t i = 0; i < NINODE; i++)
-        // {
-        //     if ((_inodes[i].i_count != 0) &&
-        //         (_inodes[i].i_flag & (Inode::INodeFlag::IUPD | Inode::INodeFlag::IACC)))
-        //     {
-        //         FileSystem::getInstance()->writeInodeCacheBackToDisk(_inodes[i]);
-        //     }
-        // }
-
-        DiskBlock* pPartition = (DiskBlock*)this;
-
-        for(size_t i = 1; i <= 3; i++)
+        for (size_t i = 0; i < NINODE; i++)
         {
-            Buf* bp = BufferManager::getInstance()->getBlk(i);
-            memcpy_s(bp->b_addr, DISK_BLOCK_SIZE, pPartition, DISK_BLOCK_SIZE);
-            pPartition++;
-            BufferManager::getInstance()->bdwrite(bp);
+            if ((_inodes[i].i_count != 0) &&
+                (_inodes[i].i_flag & (Inode::INodeFlag::IUPD | Inode::INodeFlag::IACC)))
+            {
+                FileSystem::getInstance()->writeInodeCacheBackToDisk(_inodes[i]);
+            }
         }
+
+        // DiskBlock* pPartition = (DiskBlock*)this;
+
+        // for(size_t i = 1; i <= 3; i++)
+        // {
+        //     Buf* bp = BufferManager::getInstance()->getBlk(i);
+        //     memcpy_s(bp->b_addr, DISK_BLOCK_SIZE, pPartition, DISK_BLOCK_SIZE);
+        //     pPartition++;
+        //     BufferManager::getInstance()->bdwrite(bp);
+        // }
     }
 
     void InodeTable::loadInodeCacheFromDisk()

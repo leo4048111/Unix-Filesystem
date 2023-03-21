@@ -1,6 +1,8 @@
 #pragma once
 
+#include "Log.hpp"
 #include "Defines.hpp"
+
 #include <string.h>
 
 namespace ufs

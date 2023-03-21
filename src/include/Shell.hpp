@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rang.hpp"
+#include "Log.hpp"
 
 #include <memory>
 #include <string>
