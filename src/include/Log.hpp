@@ -5,7 +5,7 @@
 
 #include <string>
 
-#define UFS_DEBUG
+// #define UFS_DEBUG
 
 namespace ufs
 {

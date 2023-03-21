@@ -203,7 +203,7 @@ namespace ufs
             dirEntry._ino = newDirInodeNo;
             memcpy_s(pDirEntry, sizeof(DirectoryEntry), &dirEntry, sizeof(DirectoryEntry));
             curDirInode.i_size += sizeof(DirectoryEntry);
-            InodeTable::getInstance()->iupdate(curDirInode.i_number, curDirInode);
+            InodeTable::getInstance()->iupdate(_curDirInodeNo, curDirInode);
             BufferManager::getInstance()->bdwrite(bp);
         }
 

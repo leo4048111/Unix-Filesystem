@@ -26,7 +26,7 @@ namespace ufs
 
         Inode& iget(int inodeId);
 
-        void iread(int inodeId, Inode& inode);
+        Inode& iread(int inodeId);
 
     private:
         Inode _inodes[NINODE];
