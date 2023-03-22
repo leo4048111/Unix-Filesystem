@@ -28,6 +28,8 @@ namespace ufs
 
         Inode& iread(int inodeId);
 
+        Error addDirectoryEntry(int inodeId, const std::string& name, const int ino);
+
     private:
         Inode _inodes[NINODE];
         char padding[4688];

@@ -20,8 +20,8 @@ namespace ufs
         // std::cout << "Info: " << msg << std::endl;
     }
 
-    void Log::out(const std::string_view msg)
+    void Log::out(const std::string_view msg, rang::fg color)
     {
-        std::cout << msg;
+        std::cout << color << msg << rang::style::reset;
     }
 }

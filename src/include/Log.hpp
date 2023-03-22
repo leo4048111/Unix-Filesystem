@@ -20,7 +20,8 @@ namespace ufs
 
         static void info(const std::string_view msg);
 
-        static void out(const std::string_view msg);
+        // out method doesn't add a newline at the end of the message
+        static void out(const std::string_view msg, rang::fg color = rang::fg::reset);
 
         template <typename... Args>
         static std::string format(const std::string &format, Args... args)
@@ -53,12 +54,6 @@ namespace ufs
     do                       \
     {                        \
         ufs::Log::info(msg); \
-    } while (0)
-
-#define UFS_LOGOUT(msg)     \
-    do                      \
-    {                       \
-        ufs::Log::out(msg); \
     } while (0)
 
 #ifdef UFS_DEBUG

@@ -1,6 +1,8 @@
 #include "InodeTable.hpp"
 #include "FileSystem.hpp"
 #include "BufferManager.hpp"
+#include "DirectoryEntry.hpp"
+#include "SuperBlockManager.hpp"
 
 #include <string.h>
 
@@ -17,23 +19,23 @@ namespace ufs
     {
     }
 
-    void InodeTable::iupdate(int inodeId, Inode& inode)
+    void InodeTable::iupdate(int inodeId, Inode &inode)
     {
         UFS_DEBUG_INFO(Log::format("iupdate: inode %d", inodeId));
         _inodes[inodeId] = inode;
         _inodes[inodeId].i_flag |= Inode::INodeFlag::IUPD;
     }
 
-    Inode& InodeTable::iread(int inodeId)
+    Inode &InodeTable::iread(int inodeId)
     {
         UFS_DEBUG_INFO(Log::format("Preparing to iread inode %d from disk", inodeId));
 
         DiskInode dinode;
         int blkno = 1 + inodeId / (DISK_BLOCK_SIZE / DISKINODE_SIZE);
         Buf *bp = BufferManager::getInstance()->bread(blkno);
-        DiskInode* destAddr = (DiskInode*)bp->b_addr;
+        DiskInode *destAddr = (DiskInode *)bp->b_addr;
         destAddr += (inodeId % (DISK_BLOCK_SIZE / DISKINODE_SIZE));
-        memcpy_s(&dinode, DISKINODE_SIZE, (void*)destAddr, DISKINODE_SIZE);
+        memcpy_s(&dinode, DISKINODE_SIZE, (void *)destAddr, DISKINODE_SIZE);
         BufferManager::getInstance()->brelse(bp);
 
         _inodes[inodeId] = Inode(dinode);
@@ -41,17 +43,17 @@ namespace ufs
         _inodes[inodeId].i_number = inodeId;
 
         UFS_DEBUG_INFO(Log::format("End ireading inode %d from disk", inodeId));
-    
+
         return _inodes[inodeId];
     }
 
-    Inode& InodeTable::iget(int inodeId)
+    Inode &InodeTable::iget(int inodeId)
     {
         UFS_DEBUG_INFO(Log::format("iget inode %d", inodeId));
-        if(!isInodeCacheLoaded(inodeId))
+        if (!isInodeCacheLoaded(inodeId))
         {
             // load inodeId from disk
-            iupdate(inodeId, iread(inodeId)); 
+            iupdate(inodeId, iread(inodeId));
         }
 
         return _inodes[inodeId];
@@ -102,5 +104,37 @@ namespace ufs
             memcpy_s(this + (i - 1) * DISK_BLOCK_SIZE, DISK_BLOCK_SIZE, bp->b_addr, DISK_BLOCK_SIZE);
             BufferManager::getInstance()->brelse(bp);
         }
+    }
+
+    Error InodeTable::addDirectoryEntry(int inodeId, const std::string &name, const int ino)
+    {
+        Error ec = Error::UFS_NOERR;
+        Inode& inode = iget(inodeId);
+
+        DirectoryEntry entry;
+        strcpy_s(entry._name, name.c_str());
+        entry._ino = ino;
+
+        // check if a new disk block needs to be allocated
+        size_t curSize = inode.i_size;
+        size_t newSize = curSize + sizeof(DirectoryEntry);
+        inode.i_size = newSize;
+        int blkCnt = newSize / DISK_BLOCK_SIZE;
+        int curBlkCnt = curSize / DISK_BLOCK_SIZE;
+
+        if(inode.i_addr[blkCnt] == 0) 
+            inode.i_addr[blkCnt] = SuperBlockManager::getInstance()->superBlock().balloc();
+
+        Buf* bp = BufferManager::getInstance()->bread(inode.i_addr[blkCnt]);
+        DirectoryEntry* pEntry = (DirectoryEntry*)bp->b_addr;
+
+        pEntry += (curSize - curBlkCnt * DISK_BLOCK_SIZE) / sizeof(DirectoryEntry);
+
+        memcpy_s(pEntry, sizeof(DirectoryEntry), &entry, sizeof(DirectoryEntry));
+
+        BufferManager::getInstance()->bdwrite(bp);
+        InodeTable::getInstance()->iupdate(inodeId, inode);
+
+        return ec;
     }
 }

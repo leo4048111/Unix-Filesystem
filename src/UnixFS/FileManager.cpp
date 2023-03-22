@@ -106,23 +106,23 @@ namespace ufs
             result += " \n"[i == curDirInode.i_size / sizeof(DirectoryEntry) - 1];
         }
 
-        UFS_LOGOUT(result);
+        Log::out(result, rang::fg::blue);
 
         return ec;
     }
 
-    Error FileManager::cd(const std::string& dirName)
+    Error FileManager::cd(const std::string &dirName)
     {
-        const Inode& curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
-        Buf* bp = BufferManager::getInstance()->bread(curDirInode.i_addr[0]);
-        DirectoryEntry* pDirEntry = (DirectoryEntry*)bp->b_addr;
+        const Inode &curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
+        Buf *bp = BufferManager::getInstance()->bread(curDirInode.i_addr[0]);
+        DirectoryEntry *pDirEntry = (DirectoryEntry *)bp->b_addr;
         BufferManager::getInstance()->brelse(bp);
-        for(int i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); ++i)
+        for (int i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); ++i)
         {
             if (strcmp(pDirEntry->_name, dirName.c_str()) == 0)
             {
-                const Inode& dirInode = InodeTable::getInstance()->iget(pDirEntry->_ino);
-                if(dirInode.i_mode != Inode::IFDIR)
+                const Inode &dirInode = InodeTable::getInstance()->iget(pDirEntry->_ino);
+                if (dirInode.i_mode != Inode::IFDIR)
                     return Error::UFS_ERR_NOT_A_DIR;
 
                 _curDirInodeNo = pDirEntry->_ino;
@@ -166,45 +166,18 @@ namespace ufs
         InodeTable::getInstance()->iupdate(newDirInode.i_number, newDirInode);
 
         // Initialize directory entry
-        DirectoryEntry dirEntry;
+        InodeTable::getInstance()->addDirectoryEntry(newDirInodeNo, ".", newDirInodeNo);
 
-        Buf *bp = BufferManager::getInstance()->getBlk(newDirInode.i_addr[0]);
-        DirectoryEntry *pDirEntry = (DirectoryEntry *)bp->b_addr;
-
-        // init "."
-        strcpy(dirEntry._name, ".");
-        dirEntry._ino = newDirInodeNo;
-        memcpy_s(pDirEntry, sizeof(DirectoryEntry), &dirEntry, sizeof(DirectoryEntry));
-        pDirEntry++;
-
-        // init ".."
-        strcpy(dirEntry._name, "..");
         if (!isRoot)
-            dirEntry._ino = _curDirInodeNo; // .. should point to current directory
-        else
-            dirEntry._ino = newDirInodeNo; // root directory's .. should point to itself
-        memcpy_s(pDirEntry, sizeof(DirectoryEntry), &dirEntry, sizeof(DirectoryEntry));
+            InodeTable::getInstance()->addDirectoryEntry(newDirInodeNo, "..", _curDirInodeNo);
 
-        BufferManager::getInstance()->bdwrite(bp);
+        else
+            InodeTable::getInstance()->addDirectoryEntry(newDirInodeNo, "..", newDirInodeNo);
 
         // update current directory inode
         if (!isRoot)
         {
-            // Get current directory Inode
-            Inode &curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
-            curDirInode.i_flag |= (Inode::INodeFlag::IUPD | Inode::INodeFlag::IACC);
-
-            // write new directory entry to disk block
-            bp = BufferManager::getInstance()->bread(curDirInode.i_addr[0]);
-            pDirEntry = (DirectoryEntry *)bp->b_addr;
-            for (int i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); i++)
-                pDirEntry++;
-            strcpy(dirEntry._name, dirName.c_str());
-            dirEntry._ino = newDirInodeNo;
-            memcpy_s(pDirEntry, sizeof(DirectoryEntry), &dirEntry, sizeof(DirectoryEntry));
-            curDirInode.i_size += sizeof(DirectoryEntry);
-            InodeTable::getInstance()->iupdate(_curDirInodeNo, curDirInode);
-            BufferManager::getInstance()->bdwrite(bp);
+            InodeTable::getInstance()->addDirectoryEntry(_curDirInodeNo, dirName, newDirInodeNo);
         }
 
         return ec;
