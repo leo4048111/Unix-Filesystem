@@ -21,7 +21,7 @@ namespace ufs
         static void info(const std::string_view msg);
 
         // out method doesn't add a newline at the end of the message
-        static void out(const std::string_view msg, rang::fg color = rang::fg::reset);
+        static void out(const std::string_view msg, rang::fg color = rang::fg::reset, rang::style style = rang::style::reset);
 
         template <typename... Args>
         static std::string format(const std::string &format, Args... args)

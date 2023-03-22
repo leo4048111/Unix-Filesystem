@@ -98,15 +98,17 @@ namespace ufs
         Buf *buf = BufferManager::getInstance()->bread(blkno);
         DirectoryEntry *pDirEntry = (DirectoryEntry *)buf->b_addr;
         BufferManager::getInstance()->brelse(buf);
-        std::string result;
+        // traverse every directory entry
         for (size_t i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); ++i)
         {
             std::string name = pDirEntry[i]._name;
-            result.append(name);
-            result += " \n"[i == curDirInode.i_size / sizeof(DirectoryEntry) - 1];
+            name += " \n"[i == curDirInode.i_size / sizeof(DirectoryEntry) - 1];
+            Inode& inode = InodeTable::getInstance()->iget(pDirEntry[i]._ino);
+            if(inode.i_mode == Inode::IFDIR)
+                Log::out(name, rang::fg::blue, rang::style::bold);
+            else
+                Log::out(name, rang::fg::green, rang::style::bold);
         }
-
-        Log::out(result, rang::fg::blue);
 
         return ec;
     }
