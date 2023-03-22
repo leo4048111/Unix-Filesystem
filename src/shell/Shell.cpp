@@ -15,7 +15,8 @@ namespace ufs
 
     void Shell::printPrefix()
     {
-        std::cout << rang::style::bold << rang::fg::green << "Admin@DESKTOP-55513A7 " << rang::fg::yellow << "~" << rang::style::reset << std::endl;
+        std::cout << rang::style::bold << rang::fg::green << "Admin@DESKTOP-55513A7 " << rang::style::reset;
+        std::cout << rang::style::bold << rang::fg::yellow << FileManager::getInstance()->curPath() << rang::style::reset << std::endl;
         putchar('$');
         putchar(' ');
     }

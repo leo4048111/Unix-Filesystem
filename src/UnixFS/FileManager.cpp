@@ -44,6 +44,7 @@ namespace ufs
             _isMounted = true;
 
         _curDirInodeNo = 0;
+        _curPath = "/";
 
         return ec;
     }
@@ -168,6 +169,7 @@ namespace ufs
                     return Error::UFS_ERR_NOT_A_DIR;
 
                 _curDirInodeNo = pDirEntry->_ino;
+                _curPath += dirName + "/";
                 return Error::UFS_NOERR;
             }
 
