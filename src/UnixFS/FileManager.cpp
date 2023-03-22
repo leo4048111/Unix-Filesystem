@@ -155,14 +155,11 @@ namespace ufs
         newDirInode.i_nlink = 1;
         newDirInode.i_count = 1;
         newDirInode.i_flag |= (Inode::INodeFlag::IUPD | Inode::INodeFlag::IACC);
-        // directory is always initted with "." and ".."
-        newDirInode.i_size = 2 * sizeof(DirectoryEntry);
 
         // Allocate a new inode
         SuperBlock &sb = SuperBlockManager::getInstance()->superBlock();
         int newDirInodeNo = sb.ialloc();
         newDirInode.i_number = newDirInodeNo;
-        newDirInode.i_addr[0] = sb.balloc();
         InodeTable::getInstance()->iupdate(newDirInode.i_number, newDirInode);
 
         // Initialize directory entry
