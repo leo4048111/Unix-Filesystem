@@ -76,6 +76,39 @@ namespace ufs
         return ec;
     }
 
+    Error FileManager::touch(const std::string& fileName)
+    {
+        Error ec = Error::UFS_NOERR;
+        if (!isMounted())
+        {
+            ec = Error::UFS_ERR_NOT_MOUNTED;
+            return ec;
+        }
+
+        // Steps to create a file
+        // (1) Get current directory inode with InodeTable::iget()
+        // (2) Allocate a new inode with InodeTable::ialloc()
+        // (3) Allocate a new data block with SuperBlock::balloc() 
+        // (4) Add a new directory entry to current directory inode
+
+        Inode& curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
+        Inode newFileInode;
+        newFileInode.i_mode = Inode::IFCHR;
+        newFileInode.i_nlink = 1;
+        newFileInode.i_count = 1;
+
+        // Allocate a new inode
+        SuperBlock &sb = SuperBlockManager::getInstance()->superBlock();
+        int newDirInodeNo = sb.ialloc();
+        newFileInode.i_number = newDirInodeNo;
+        InodeTable::getInstance()->iupdate(newFileInode.i_number, newFileInode);
+
+        // add directory entry for current file
+        ec = InodeTable::getInstance()->addDirectoryEntry(_curDirInodeNo, fileName, newFileInode.i_number);
+
+        return ec;
+    }
+
     Error FileManager::ls()
     {
         Error ec = Error::UFS_NOERR;
@@ -115,6 +148,13 @@ namespace ufs
 
     Error FileManager::cd(const std::string &dirName)
     {
+        // steps to change current directory
+        // (1) Get current directory inode with InodeTable::iget()
+        // (2) Read all directory entries in current directory inode with Inode::read()
+        // (3) Find the directory entry with the given directory name
+        // (4) Check if the directory entry is a directory
+        // (5) Change current directory inode number to the directory entry's inode number
+
         const Inode &curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
         Buf *bp = BufferManager::getInstance()->bread(curDirInode.i_addr[0]);
         DirectoryEntry *pDirEntry = (DirectoryEntry *)bp->b_addr;
@@ -156,7 +196,6 @@ namespace ufs
         newDirInode.i_mode = Inode::IFDIR;
         newDirInode.i_nlink = 1;
         newDirInode.i_count = 1;
-        newDirInode.i_flag |= (Inode::INodeFlag::IUPD | Inode::INodeFlag::IACC);
 
         // Allocate a new inode
         SuperBlock &sb = SuperBlockManager::getInstance()->superBlock();
@@ -168,15 +207,15 @@ namespace ufs
         InodeTable::getInstance()->addDirectoryEntry(newDirInodeNo, ".", newDirInodeNo);
 
         if (!isRoot)
-            InodeTable::getInstance()->addDirectoryEntry(newDirInodeNo, "..", _curDirInodeNo);
+            ec = InodeTable::getInstance()->addDirectoryEntry(newDirInodeNo, "..", _curDirInodeNo);
 
         else
-            InodeTable::getInstance()->addDirectoryEntry(newDirInodeNo, "..", newDirInodeNo);
+            ec = InodeTable::getInstance()->addDirectoryEntry(newDirInodeNo, "..", newDirInodeNo);
 
         // update current directory inode
         if (!isRoot)
         {
-            InodeTable::getInstance()->addDirectoryEntry(_curDirInodeNo, dirName, newDirInodeNo);
+            ec = InodeTable::getInstance()->addDirectoryEntry(_curDirInodeNo, dirName, newDirInodeNo);
         }
 
         return ec;

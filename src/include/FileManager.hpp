@@ -16,6 +16,7 @@ namespace ufs
         Error ls();
         Error mkdir(const std::string& dirName, bool isRoot = false);
         Error cd(const std::string& dirName);
+        Error touch(const std::string& fileName);
 
         bool isMounted() const { return _isMounted; }
 

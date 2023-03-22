@@ -81,6 +81,12 @@ namespace ufs
                 return Error::UFS_ERR_INVALID_COMMAND_ARG;
             return FileManager::getInstance()->cd(_splitCmd[1]);
         }
+        case InstCode::TOUCH:
+        {
+            if (_splitCmd.size() != 2)
+                return Error::UFS_ERR_INVALID_COMMAND_ARG;
+            return FileManager::getInstance()->touch(_splitCmd[1]);
+        }
             // case "unmount":
             //     unmount();
             //     break;
