@@ -3,6 +3,7 @@
 #include "Log.hpp"
 #include "Defines.hpp"
 #include "DiskInode.hpp"
+#include "DirectoryEntry.hpp"
 
 namespace ufs
 {
@@ -48,6 +49,8 @@ namespace ufs
         Inode(DiskInode& diskInode); // 转换构造函数
         Inode(const Inode& inode);  // 拷贝构造函数
         Inode& operator= (const Inode& inode); // 赋值运算符重载
-        int bmap(int lbn);          // 根据逻辑块号查混合索引表，得到物理块号。
+        int bmap(int lbn);          // 根据逻辑块号查混合索引表，得到物理块号（本项目为了简单起见中直接返回i_addr[lbn]，即不区分逻辑块号和物理块号）
+        DirectoryEntry& dirEntryAt(int idx); // find the idx-th directory entry in the directory
+
     };
 }

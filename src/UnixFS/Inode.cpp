@@ -1,4 +1,5 @@
 #include "Inode.hpp"
+#include "BufferManager.hpp"
 
 #include <string.h>
 
@@ -19,6 +20,23 @@ namespace ufs
         return *this;
     }
 
+    DirectoryEntry& Inode::dirEntryAt(int idx)
+    {
+        size_t totalSize = this->i_size;
+
+        size_t numDirectEntries = totalSize / sizeof(DirectoryEntry);
+
+        size_t blkno = bmap(idx / (DISK_BLOCK_SIZE / sizeof(DirectoryEntry)));
+        Buf *bp = BufferManager::getInstance()->bread(blkno);
+        DirectoryEntry* dirEntry = (DirectoryEntry*)bp->b_addr;
+
+        dirEntry += (idx % (DISK_BLOCK_SIZE / sizeof(DirectoryEntry)));
+
+        BufferManager::getInstance()->brelse(bp);
+
+        return *dirEntry;
+    }
+
     Inode::Inode(DiskInode &diskInode)
     {
         this->i_mode = diskInode.d_mode;
@@ -35,6 +53,6 @@ namespace ufs
 
     int Inode::bmap(int lbn)
     {
-        return 0;
+        return i_addr[lbn];
     };
 }

@@ -77,7 +77,7 @@ namespace ufs
         return ec;
     }
 
-    Error FileManager::touch(const std::string& fileName)
+    Error FileManager::touch(const std::string &fileName)
     {
         Error ec = Error::UFS_NOERR;
         if (!isMounted())
@@ -89,10 +89,10 @@ namespace ufs
         // Steps to create a file
         // (1) Get current directory inode with InodeTable::iget()
         // (2) Allocate a new inode with InodeTable::ialloc()
-        // (3) Allocate a new data block with SuperBlock::balloc() 
+        // (3) Allocate a new data block with SuperBlock::balloc()
         // (4) Add a new directory entry to current directory inode
 
-        Inode& curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
+        Inode &curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
         Inode newFileInode;
         newFileInode.i_mode = Inode::IFCHR;
         newFileInode.i_nlink = 1;
@@ -106,6 +106,47 @@ namespace ufs
 
         // add directory entry for current file
         ec = InodeTable::getInstance()->addDirectoryEntry(_curDirInodeNo, fileName, newFileInode.i_number);
+
+        return ec;
+    }
+
+    Error FileManager::echo(const std::string &msg)
+    {
+        Error ec = Error::UFS_NOERR;
+
+        if (!isMounted())
+        {
+            ec = Error::UFS_ERR_NOT_MOUNTED;
+            return ec;
+        }   
+
+        // Simply echo the msg
+        Log::out(msg);
+        Log::out("\n");
+
+        return ec;
+    }
+
+    Error FileManager::echo(const std::string &fileName, const std::string &data)
+    {
+        Error ec = Error::UFS_NOERR;
+
+        if (!isMounted())
+        {
+            ec = Error::UFS_ERR_NOT_MOUNTED;
+            return ec;
+        }   
+
+        // Steps to write data to a file
+        // (1) Get current directory inode with InodeTable::iget()
+        // (2) Check if a directory entry with valid filename exists
+        // (3) Get the inode for the file
+        // (4) Write data to disk block pointed by the file inode's i_addr
+
+        // Find current directory inode
+        Inode &curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
+
+        
 
         return ec;
     }
@@ -127,18 +168,14 @@ namespace ufs
 
         Inode &curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
 
-        // TODO: Properly resolve all data blocks
-        int blkno = curDirInode.i_addr[0];
-        Buf *buf = BufferManager::getInstance()->bread(blkno);
-        DirectoryEntry *pDirEntry = (DirectoryEntry *)buf->b_addr;
-        BufferManager::getInstance()->brelse(buf);
         // traverse every directory entry
         for (size_t i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); ++i)
         {
-            std::string name = pDirEntry[i]._name;
+            DirectoryEntry& dirEntry = curDirInode.dirEntryAt(i);
+            std::string name = dirEntry._name;
             name += " \n"[i == curDirInode.i_size / sizeof(DirectoryEntry) - 1];
-            Inode& inode = InodeTable::getInstance()->iget(pDirEntry[i]._ino);
-            if(inode.i_mode == Inode::IFDIR)
+            Inode &inode = InodeTable::getInstance()->iget(dirEntry._ino);
+            if (inode.i_mode == Inode::IFDIR)
                 Log::out(name, rang::fg::blue, rang::style::bold);
             else
                 Log::out(name, rang::fg::green, rang::style::bold);
