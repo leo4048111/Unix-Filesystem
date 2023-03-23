@@ -19,6 +19,7 @@ namespace ufs
         Error touch(const std::string &fileName);
         Error echo(const std::string &msg);
         Error echo(const std::string &fileName, const std::string &data);
+        Error cat(const std::string &fileName);
 
         bool isMounted() const { return _isMounted; }
 

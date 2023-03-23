@@ -20,23 +20,6 @@ namespace ufs
         return *this;
     }
 
-    DirectoryEntry& Inode::dirEntryAt(int idx)
-    {
-        size_t totalSize = this->i_size;
-
-        size_t numDirectEntries = totalSize / sizeof(DirectoryEntry);
-
-        size_t blkno = bmap(idx / (DISK_BLOCK_SIZE / sizeof(DirectoryEntry)));
-        Buf *bp = BufferManager::getInstance()->bread(blkno);
-        DirectoryEntry* dirEntry = (DirectoryEntry*)bp->b_addr;
-
-        dirEntry += (idx % (DISK_BLOCK_SIZE / sizeof(DirectoryEntry)));
-
-        BufferManager::getInstance()->brelse(bp);
-
-        return *dirEntry;
-    }
-
     Inode::Inode(DiskInode &diskInode)
     {
         this->i_mode = diskInode.d_mode;
@@ -50,23 +33,6 @@ namespace ufs
         this->i_dev = 0;
         this->i_lastr = -1;
     };
-
-    void Inode::fwrite(const std::string& buffer)
-    {
-        size_t totalSize = this->i_size;
-        int blkno = totalSize / DISK_BLOCK_SIZE;
-        Buf* bp = BufferManager::getInstance()->bread(blkno);
-
-        size_t offset = totalSize % DISK_BLOCK_SIZE;
-
-        // TODO: if current available space in the block is not enough, we need to allocate a new block
-
-        uintptr_t destAddr = (uintptr_t)bp->b_addr;
-        destAddr += offset;
-        memcpy_s((void*)destAddr, buffer.size(), buffer.c_str(), buffer.size());
-
-        BufferManager::getInstance()->brelse(bp);
-    }
 
     int Inode::bmap(int lbn)
     {

@@ -26,7 +26,11 @@ namespace ufs
         void loadSuperBlock(SuperBlock& superblock);
 
         void writeInodeCacheBackToDisk(Inode& inode);
-        
+
+        DirectoryEntry& dirEntryAt(Inode& inode, int idx); // find the idx-th directory entry in the directory
+        Error fwrite(Inode& inode, const std::string& buffer); // write len bytes from buf to the file
+        Error fread(Inode& inode, char* buf, int len); // read len bytes from the file to buf
+
     private:
         unsigned int _fsStat { FS_UNINITIALIZED };
     };

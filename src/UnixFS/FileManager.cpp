@@ -149,7 +149,7 @@ namespace ufs
 
         for (size_t i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); i++)
         {
-            DirectoryEntry &dirEntry = curDirInode.dirEntryAt(i);
+            DirectoryEntry &dirEntry = FileSystem::getInstance()->dirEntryAt(curDirInode, i);
             if (strcmp(dirEntry._name, fileName.c_str()) == 0)
             {
                 const Inode &dirInode = InodeTable::getInstance()->iget(dirEntry._ino);
@@ -184,7 +184,7 @@ namespace ufs
         // traverse every directory entry
         for (size_t i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); ++i)
         {
-            DirectoryEntry &dirEntry = curDirInode.dirEntryAt(i);
+            DirectoryEntry &dirEntry = FileSystem::getInstance()->dirEntryAt(curDirInode, i);
             std::string name = dirEntry._name;
             name += " \n"[i == curDirInode.i_size / sizeof(DirectoryEntry) - 1];
             Inode &inode = InodeTable::getInstance()->iget(dirEntry._ino);
@@ -209,7 +209,7 @@ namespace ufs
         Inode &curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
         for (int i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); ++i)
         {
-            DirectoryEntry &dirEntry = curDirInode.dirEntryAt(i);
+            DirectoryEntry &dirEntry = FileSystem::getInstance()->dirEntryAt(curDirInode, i);
             if (strcmp(dirEntry._name, dirName.c_str()) == 0)
             {
                 const Inode &dirInode = InodeTable::getInstance()->iget(dirEntry._ino);
@@ -223,6 +223,42 @@ namespace ufs
         }
 
         return Error::UFS_ERR_NO_SUCH_DIR_OR_FILE;
+    }
+
+    Error FileManager::cat(const std::string &fileName)
+    {
+        Error ec = Error::UFS_NOERR;
+
+        if (!isMounted())
+        {
+            ec = Error::UFS_ERR_NOT_MOUNTED;
+            return ec;
+        }
+
+        // steps to read data from a file
+        // (1) Get current directory inode with InodeTable::iget()
+        // (2) Check if a directory entry with valid filename exists
+        // (3) Get the inode for the file
+        // (4) Read data from disk block pointed by the file inode's i_addr
+
+        // Find current directory inode
+        Inode &curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
+
+        for (size_t i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); i++)
+        {
+            DirectoryEntry &dirEntry = FileSystem::getInstance()->dirEntryAt(curDirInode, i);
+            if (strcmp(dirEntry._name, fileName.c_str()) == 0)
+            {
+                const Inode &dirInode = InodeTable::getInstance()->iget(dirEntry._ino);
+                if (dirInode.i_mode != Inode::IFCHR)
+                {
+                    ec = Error::UFS_ERR_NOT_A_FILE;
+                    return ec;
+                }
+            }
+        }
+
+        return ec;
     }
 
     Error FileManager::mkdir(const std::string &dirName, bool isRoot)

@@ -33,15 +33,15 @@ namespace ufs
         // get the block number which should be written back to disk
         int blkno = 1 + inode.i_number / (DISK_BLOCK_SIZE / DISKINODE_SIZE);
         Buf *bp = BufferManager::getInstance()->bread(blkno);
-    
-        DiskInode* destAddr = (DiskInode*)bp->b_addr;
+
+        DiskInode *destAddr = (DiskInode *)bp->b_addr;
         destAddr += (inode.i_number % (DISK_BLOCK_SIZE / DISKINODE_SIZE));
 
         // memcpy the DiskInode to the block, then call bwrite to write buffer back to disk
         memcpy_s(destAddr, DISKINODE_SIZE, &dInode, DISKINODE_SIZE);
         BufferManager::getInstance()->bdwrite(bp);
         inode.i_flag &= ~(Inode::INodeFlag::IUPD | Inode::INodeFlag::IACC);
-        
+
         UFS_DEBUG_INFO(Log::format("Inode %d written back to disk", inode.i_number));
     }
 
@@ -76,9 +76,50 @@ namespace ufs
     {
         Error ec = BufferManager::getInstance()->unmount();
 
-        if(ec == Error::UFS_NOERR)
+        if (ec == Error::UFS_NOERR)
             _fsStat = FS_STATUS::FS_UNINITIALIZED;
 
         return ec;
     }
+
+    DirectoryEntry &dirEntryAt(Inode &inode, int idx)
+    {
+        size_t totalSize = inode.i_size;
+
+        size_t numDirectEntries = totalSize / sizeof(DirectoryEntry);
+
+        size_t blkno = inode.bmap(idx / (DISK_BLOCK_SIZE / sizeof(DirectoryEntry)));
+        Buf *bp = BufferManager::getInstance()->bread(blkno);
+        DirectoryEntry *dirEntry = (DirectoryEntry *)bp->b_addr;
+
+        dirEntry += (idx % (DISK_BLOCK_SIZE / sizeof(DirectoryEntry)));
+
+        BufferManager::getInstance()->brelse(bp);
+
+        return *dirEntry;
+    }
+
+    Error FileSystem::fwrite(Inode &inode, const std::string &buffer)
+    {
+        size_t totalSize = inode.i_size;
+        int blkno = totalSize / DISK_BLOCK_SIZE;
+        Buf *bp = BufferManager::getInstance()->bread(blkno);
+
+        size_t offset = totalSize % DISK_BLOCK_SIZE;
+
+        // TODO: if current available space in the block is not enough, we need to allocate a new block
+
+        uintptr_t destAddr = (uintptr_t)bp->b_addr;
+        destAddr += offset;
+        memcpy_s((void *)destAddr, buffer.size(), buffer.c_str(), buffer.size());
+        inode.i_size += buffer.size();
+
+        BufferManager::getInstance()->brelse(bp);
+    }
+
+    Error FileSystem::fread(Inode &inode, char *buf, int len)
+    {
+        return Error::UFS_NOERR;
+    }
+
 }
