@@ -59,8 +59,10 @@ namespace ufs
             return InstCode::ECHO;
         if (s == "cat")
             return InstCode::CAT;
-        if(s == "rm")
+        if (s == "rm")
             return InstCode::RM;
+        if (s == "rmdir")
+            return InstCode::RMDIR;
 
         return InstCode::INVALID;
     }
@@ -113,9 +115,15 @@ namespace ufs
         }
         case InstCode::RM:
         {
-            if(_splitCmd.size() != 2)
+            if (_splitCmd.size() != 2)
                 return Error::UFS_ERR_INVALID_COMMAND_ARG;
             return FileManager::getInstance()->rm(_splitCmd[1]);
+        }
+        case InstCode::RMDIR:
+        {
+            if (_splitCmd.size() != 2)
+                return Error::UFS_ERR_INVALID_COMMAND_ARG;
+            return FileManager::getInstance()->rmdir(_splitCmd[1]);
         }
         }
 

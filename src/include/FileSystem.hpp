@@ -32,6 +32,7 @@ namespace ufs
         Error fwrite(Inode& inode, const std::string& buffer); // write len bytes from buf to the file
         Error fread(Inode& inode, std::string& buffer); // read len bytes from the file to buf
         Error freeInode(Inode& inode); // free an inode
+        Error freeThisInodeAndAllSubInodes(Inode& inode); // free sub inodes in a directory
 
     private:
         unsigned int _fsStat { FS_UNINITIALIZED };

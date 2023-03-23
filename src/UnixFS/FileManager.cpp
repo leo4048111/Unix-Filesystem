@@ -165,7 +165,7 @@ namespace ufs
                 return ec;
             }
         }
-        
+
         ec = Error::UFS_ERR_NO_SUCH_DIR_OR_FILE;
         return ec;
     }
@@ -382,7 +382,7 @@ namespace ufs
         return ec;
     }
 
-    Error FileManager::rm(const std::string& fileName)
+    Error FileManager::rm(const std::string &fileName)
     {
         Error ec = Error::UFS_NOERR;
 
@@ -401,27 +401,72 @@ namespace ufs
         // (6) remove the directory entry from current directory
 
         // Find current directory inode
-        Inode& curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
+        Inode &curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
 
-        for(int i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry) + 1; i++)
+        for (int i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry) + 1; i++)
         {
-            DirectoryEntry& entry = FileSystem::getInstance()->dirEntryAt(curDirInode, i);
+            DirectoryEntry &entry = FileSystem::getInstance()->dirEntryAt(curDirInode, i);
             if (strcmp(entry._name, fileName.c_str()) == 0)
             {
-                Inode& fileInode = InodeTable::getInstance()->iget(entry._ino);
+                Inode &fileInode = InodeTable::getInstance()->iget(entry._ino);
                 if (fileInode.i_mode != Inode::IFCHR)
                 {
                     ec = Error::UFS_ERR_NOT_A_FILE;
                     return ec;
                 }
 
-                // Free inode 
+                // Free inode
                 ec = FileSystem::getInstance()->freeInode(fileInode);
-                
+
                 // remove dir entry
                 FileSystem::getInstance()->removeDirEntryAt(curDirInode, i);
-                InodeTable::getInstance()->iupdate(_curDirInodeNo, curDirInode);
 
+                return ec;
+            }
+        }
+
+        ec = Error::UFS_ERR_NO_SUCH_DIR_OR_FILE;
+        return ec;
+    }
+
+    Error FileManager::rmdir(const std::string &dirName)
+    {
+        Error ec = Error::UFS_NOERR;
+
+        if (!isMounted())
+        {
+            ec = Error::UFS_ERR_NOT_MOUNTED;
+            return ec;
+        }
+
+        // steps to remove a directory
+        // (1) Get current directory inode with InodeTable::iget()
+        // (2) Check if a directory entry with valid filename exists
+        // (3) Get the inode for the directory
+        // (4) Remove every sub file and sub directory recursively
+        // (5) free inode with SuperBlock::ifree(int inodeNo)
+        // (6) remove the directory entry from current directory
+
+        // Find current directory inode
+        Inode &curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
+
+        for (int i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry) + 1; i++)
+        {
+            DirectoryEntry &entry = FileSystem::getInstance()->dirEntryAt(curDirInode, i);
+            if (strcmp(entry._name, dirName.c_str()) == 0)
+            {
+                Inode &dirInode = InodeTable::getInstance()->iget(entry._ino);
+                if (dirInode.i_mode != Inode::IFDIR)
+                {
+                    ec = Error::UFS_ERR_NOT_A_DIR;
+                    return ec;
+                }
+
+                // Free inode
+                ec = FileSystem::getInstance()->freeThisInodeAndAllSubInodes(dirInode);
+
+                // remove dir entry
+                FileSystem::getInstance()->removeDirEntryAt(curDirInode, i);
                 return ec;
             }
         }

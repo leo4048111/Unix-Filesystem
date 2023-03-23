@@ -1,6 +1,7 @@
 #include "FileSystem.hpp"
 #include "BufferManager.hpp"
 #include "SuperBlockManager.hpp"
+#include "InodeTable.hpp"
 
 namespace ufs
 {
@@ -99,23 +100,26 @@ namespace ufs
         return *dirEntry;
     }
 
-    void FileSystem::removeDirEntryAt(Inode& inode, int idx)
+    void FileSystem::removeDirEntryAt(Inode &inode, int idx)
     {
         size_t totalSize = inode.i_size;
 
         size_t numDirectEntries = totalSize / sizeof(DirectoryEntry);
 
         // move all the entries after the idx to the front
-        for(int i = idx; i < numDirectEntries - 1; i++)
+        for (int i = idx; i < numDirectEntries - 1; i++)
         {
-            DirectoryEntry& dirEntry = dirEntryAt(inode, i);
-            DirectoryEntry& nextDirEntry = dirEntryAt(inode, i + 1);
+            DirectoryEntry &dirEntry = dirEntryAt(inode, i);
+            DirectoryEntry &nextDirEntry = dirEntryAt(inode, i + 1);
 
             dirEntry = nextDirEntry;
         }
 
         // update i_size
         inode.i_size -= sizeof(DirectoryEntry);
+
+        // update inode
+        InodeTable::getInstance()->iupdate(inode.i_number, inode);
     }
 
     Error FileSystem::fwrite(Inode &inode, const std::string &buffer)
@@ -163,9 +167,9 @@ namespace ufs
         Error ec = Error::UFS_NOERR;
 
         size_t totalSize = inode.i_size;
-        
+
         // Free every data block
-        for(int i = 0; i < totalSize / DISK_BLOCK_SIZE + 1; i++)
+        for (int i = 0; i < totalSize / DISK_BLOCK_SIZE + 1; i++)
         {
             int blkno = inode.bmap(i);
             SuperBlockManager::getInstance()->superBlock().bfree(blkno);
@@ -173,6 +177,42 @@ namespace ufs
 
         // Free inode
         SuperBlockManager::getInstance()->superBlock().ifree(inode.i_number);
+
+        return ec;
+    }
+
+    Error FileSystem::freeThisInodeAndAllSubInodes(Inode &inode)
+    {
+        Error ec = Error::UFS_NOERR;
+
+        size_t totalSize = inode.i_size;
+
+        size_t numDirectEntries = totalSize / sizeof(DirectoryEntry);
+
+        // remove "." and ".."
+        for (int i = 0; i < 2; i++)
+        {
+            DirectoryEntry &dirEntry = dirEntryAt(inode, i);
+            Inode& tmpInode = InodeTable::getInstance()->iget(dirEntry._ino);
+            freeInode(tmpInode);
+        }
+
+        // remove every sub inode
+        for (int i = 2; i < numDirectEntries - 1; i++)
+        {
+            DirectoryEntry &dirEntry = dirEntryAt(inode, i);
+            DirectoryEntry &nextDirEntry = dirEntryAt(inode, i + 1);
+            
+            Inode& tmpInode = InodeTable::getInstance()->iget(dirEntry._ino);
+            if(tmpInode.i_mode == Inode::IFDIR)
+                freeThisInodeAndAllSubInodes(tmpInode);
+            else 
+                freeInode(tmpInode);
+
+            dirEntry = nextDirEntry;
+        }
+
+        freeInode(inode);
 
         return ec;
     }

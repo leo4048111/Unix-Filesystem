@@ -30,7 +30,8 @@ namespace ufs
             ECHO,
             MKDIR,
             CAT,
-            RM
+            RM,
+            RMDIR
         };
 
         char _ttyBuffer[TTY_BUFFER_SIZE];
