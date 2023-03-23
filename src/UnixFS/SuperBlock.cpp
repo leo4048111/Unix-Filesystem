@@ -30,6 +30,6 @@ namespace ufs
 
     void SuperBlock::ifree(int inodeNo)
     {
-        s_inode[++s_ninode++] = inodeNo;
+        s_inode[s_ninode++] = inodeNo;
     }
 }
