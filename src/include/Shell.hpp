@@ -29,7 +29,8 @@ namespace ufs
             TOUCH,
             ECHO,
             MKDIR,
-            CAT
+            CAT,
+            RM
         };
 
         char _ttyBuffer[TTY_BUFFER_SIZE];

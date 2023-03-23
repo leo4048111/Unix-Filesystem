@@ -381,4 +381,52 @@ namespace ufs
 
         return ec;
     }
+
+    Error FileManager::rm(const std::string& fileName)
+    {
+        Error ec = Error::UFS_NOERR;
+
+        if (!isMounted())
+        {
+            ec = Error::UFS_ERR_NOT_MOUNTED;
+            return ec;
+        }
+
+        // steps to remove a file
+        // (1) Get current directory inode with InodeTable::iget()
+        // (2) Check if a directory entry with valid filename exists
+        // (3) Get the inode for the file
+        // (4) Remove data from disk block pointed by the file inode's i_addr
+        // (5) free inode with SuperBlock::ifree(int inodeNo)
+        // (6) remove the directory entry from current directory
+
+        // Find current directory inode
+        Inode& curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
+
+        for(int i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry) + 1; i++)
+        {
+            DirectoryEntry& entry = FileSystem::getInstance()->dirEntryAt(curDirInode, i);
+            if (strcmp(entry._name, fileName.c_str()) == 0)
+            {
+                Inode& fileInode = InodeTable::getInstance()->iget(entry._ino);
+                if (fileInode.i_mode != Inode::IFCHR)
+                {
+                    ec = Error::UFS_ERR_NOT_A_FILE;
+                    return ec;
+                }
+
+                // Free inode 
+                ec = FileSystem::getInstance()->freeInode(fileInode);
+                
+                // remove dir entry
+                FileSystem::getInstance()->removeDirEntryAt(curDirInode, i);
+                InodeTable::getInstance()->iupdate(_curDirInodeNo, curDirInode);
+
+                return ec;
+            }
+        }
+
+        ec = Error::UFS_ERR_NO_SUCH_DIR_OR_FILE;
+        return ec;
+    }
 }

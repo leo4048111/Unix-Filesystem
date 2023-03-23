@@ -99,6 +99,25 @@ namespace ufs
         return *dirEntry;
     }
 
+    void FileSystem::removeDirEntryAt(Inode& inode, int idx)
+    {
+        size_t totalSize = inode.i_size;
+
+        size_t numDirectEntries = totalSize / sizeof(DirectoryEntry);
+
+        // move all the entries after the idx to the front
+        for(int i = idx; i < numDirectEntries - 1; i++)
+        {
+            DirectoryEntry& dirEntry = dirEntryAt(inode, i);
+            DirectoryEntry& nextDirEntry = dirEntryAt(inode, i + 1);
+
+            dirEntry = nextDirEntry;
+        }
+
+        // update i_size
+        inode.i_size -= sizeof(DirectoryEntry);
+    }
+
     Error FileSystem::fwrite(Inode &inode, const std::string &buffer)
     {
         size_t totalSize = inode.i_size;
@@ -120,12 +139,12 @@ namespace ufs
         return Error::UFS_NOERR;
     }
 
-    Error FileSystem::fread(Inode &inode, std::string& buffer)
+    Error FileSystem::fread(Inode &inode, std::string &buffer)
     {
         size_t totalSize = inode.i_size;
         int maxIdx = totalSize / DISK_BLOCK_SIZE + 1;
 
-        for(int i = 0; i < maxIdx; i++)
+        for (int i = 0; i < maxIdx; i++)
         {
             int blkno = inode.bmap(i);
             Buf *bp = BufferManager::getInstance()->bread(blkno);
@@ -139,4 +158,22 @@ namespace ufs
         return Error::UFS_NOERR;
     }
 
+    Error FileSystem::freeInode(Inode &inode)
+    {
+        Error ec = Error::UFS_NOERR;
+
+        size_t totalSize = inode.i_size;
+        
+        // Free every data block
+        for(int i = 0; i < totalSize / DISK_BLOCK_SIZE + 1; i++)
+        {
+            int blkno = inode.bmap(i);
+            SuperBlockManager::getInstance()->superBlock().bfree(blkno);
+        }
+
+        // Free inode
+        SuperBlockManager::getInstance()->superBlock().ifree(inode.i_number);
+
+        return ec;
+    }
 }
