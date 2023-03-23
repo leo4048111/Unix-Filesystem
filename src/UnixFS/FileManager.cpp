@@ -103,6 +103,7 @@ namespace ufs
         SuperBlock &sb = SuperBlockManager::getInstance()->superBlock();
         int newDirInodeNo = sb.ialloc();
         newFileInode.i_number = newDirInodeNo;
+        newFileInode.i_addr[0] = sb.balloc();
         InodeTable::getInstance()->iupdate(newFileInode.i_number, newFileInode);
 
         // add directory entry for current file
@@ -152,15 +153,20 @@ namespace ufs
             DirectoryEntry &dirEntry = FileSystem::getInstance()->dirEntryAt(curDirInode, i);
             if (strcmp(dirEntry._name, fileName.c_str()) == 0)
             {
-                const Inode &dirInode = InodeTable::getInstance()->iget(dirEntry._ino);
-                if (dirInode.i_mode != Inode::IFCHR)
+                Inode &fileInode = InodeTable::getInstance()->iget(dirEntry._ino);
+                if (fileInode.i_mode != Inode::IFCHR)
                 {
                     ec = Error::UFS_ERR_NOT_A_FILE;
                     return ec;
                 }
+
+                ec = FileSystem::getInstance()->fwrite(fileInode, data);
+                InodeTable::getInstance()->iupdate(fileInode.i_number, fileInode);
+                return ec;
             }
         }
-
+        
+        ec = Error::UFS_ERR_NO_SUCH_DIR_OR_FILE;
         return ec;
     }
 
@@ -249,21 +255,22 @@ namespace ufs
             DirectoryEntry &dirEntry = FileSystem::getInstance()->dirEntryAt(curDirInode, i);
             if (strcmp(dirEntry._name, fileName.c_str()) == 0)
             {
-                Inode &dirInode = InodeTable::getInstance()->iget(dirEntry._ino);
-                if (dirInode.i_mode != Inode::IFCHR)
+                Inode &fileInode = InodeTable::getInstance()->iget(dirEntry._ino);
+                if (fileInode.i_mode != Inode::IFCHR)
                 {
                     ec = Error::UFS_ERR_NOT_A_FILE;
                     return ec;
                 }
 
                 std::string buffer;
-                ec = FileSystem::getInstance()->fread(dirInode, buffer);
+                ec = FileSystem::getInstance()->fread(fileInode, buffer);
                 buffer += '\n';
                 Log::out(buffer);
-                break;
+                return ec;
             }
         }
 
+        ec = Error::UFS_ERR_NO_SUCH_DIR_OR_FILE;
         return ec;
     }
 

@@ -90,7 +90,8 @@ namespace ufs
         UFS_DEBUG_INFO(Log::format("getBlk: blkno=%d", blkno));
         Buf *bp;
 
-        for (bp = _bFreeList.av_forw; bp != &_bFreeList; bp = bp->av_forw)
+        // look for a buffer to reuse in the dev list
+        for (bp = _bFreeList.b_forw; bp != &_bFreeList; bp = bp->b_forw)
         {
             if (bp->b_blkno != blkno)
                 continue;

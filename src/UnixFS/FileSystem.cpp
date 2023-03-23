@@ -102,7 +102,8 @@ namespace ufs
     Error FileSystem::fwrite(Inode &inode, const std::string &buffer)
     {
         size_t totalSize = inode.i_size;
-        int blkno = totalSize / DISK_BLOCK_SIZE;
+        int idx = totalSize / DISK_BLOCK_SIZE;
+        int blkno = inode.bmap(idx);
         Buf *bp = BufferManager::getInstance()->bread(blkno);
 
         size_t offset = totalSize % DISK_BLOCK_SIZE;
@@ -122,11 +123,12 @@ namespace ufs
     Error FileSystem::fread(Inode &inode, std::string& buffer)
     {
         size_t totalSize = inode.i_size;
-        int blkno = totalSize / DISK_BLOCK_SIZE;
+        int maxIdx = totalSize / DISK_BLOCK_SIZE + 1;
 
-        for(int i = 0; i < blkno; i++)
+        for(int i = 0; i < maxIdx; i++)
         {
-            Buf *bp = BufferManager::getInstance()->bread(i);
+            int blkno = inode.bmap(i);
+            Buf *bp = BufferManager::getInstance()->bread(blkno);
 
             size_t sizeToRead = ((inode.i_size - i * DISK_BLOCK_SIZE) > DISK_BLOCK_SIZE ? DISK_BLOCK_SIZE : (inode.i_size - i * DISK_BLOCK_SIZE));
 
