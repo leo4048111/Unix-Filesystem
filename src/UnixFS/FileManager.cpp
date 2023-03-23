@@ -249,12 +249,18 @@ namespace ufs
             DirectoryEntry &dirEntry = FileSystem::getInstance()->dirEntryAt(curDirInode, i);
             if (strcmp(dirEntry._name, fileName.c_str()) == 0)
             {
-                const Inode &dirInode = InodeTable::getInstance()->iget(dirEntry._ino);
+                Inode &dirInode = InodeTable::getInstance()->iget(dirEntry._ino);
                 if (dirInode.i_mode != Inode::IFCHR)
                 {
                     ec = Error::UFS_ERR_NOT_A_FILE;
                     return ec;
                 }
+
+                std::string buffer;
+                ec = FileSystem::getInstance()->fread(dirInode, buffer);
+                buffer += '\n';
+                Log::out(buffer);
+                break;
             }
         }
 

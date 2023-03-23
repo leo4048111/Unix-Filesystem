@@ -57,6 +57,8 @@ namespace ufs
             return InstCode::TOUCH;
         if (s == "echo")
             return InstCode::ECHO;
+        if (s == "cat")
+            return InstCode::CAT;
 
         return InstCode::INVALID;
     }
@@ -100,6 +102,12 @@ namespace ufs
                 return Error::UFS_ERR_INVALID_COMMAND_ARG;
 
             return FileManager::getInstance()->echo(_splitCmd[3], _splitCmd[1]);
+        }
+        case InstCode::CAT:
+        {
+            if (_splitCmd.size() != 2)
+                return Error::UFS_ERR_INVALID_COMMAND_ARG;
+            return FileManager::getInstance()->cat(_splitCmd[1]);
         }
         }
 

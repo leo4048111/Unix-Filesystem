@@ -28,7 +28,8 @@ namespace ufs
             CD,
             TOUCH,
             ECHO,
-            MKDIR
+            MKDIR,
+            CAT
         };
 
         char _ttyBuffer[TTY_BUFFER_SIZE];

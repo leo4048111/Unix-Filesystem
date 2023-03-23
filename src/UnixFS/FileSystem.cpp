@@ -119,8 +119,21 @@ namespace ufs
         return Error::UFS_NOERR;
     }
 
-    Error FileSystem::fread(Inode &inode, char *buf, int len)
+    Error FileSystem::fread(Inode &inode, std::string& buffer)
     {
+        size_t totalSize = inode.i_size;
+        int blkno = totalSize / DISK_BLOCK_SIZE;
+
+        for(int i = 0; i < blkno; i++)
+        {
+            Buf *bp = BufferManager::getInstance()->bread(i);
+
+            size_t sizeToRead = ((inode.i_size - i * DISK_BLOCK_SIZE) > DISK_BLOCK_SIZE ? DISK_BLOCK_SIZE : (inode.i_size - i * DISK_BLOCK_SIZE));
+
+            buffer.append((char *)bp->b_addr, sizeToRead);
+            BufferManager::getInstance()->brelse(bp);
+        }
+
         return Error::UFS_NOERR;
     }
 
