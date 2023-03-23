@@ -115,7 +115,7 @@ namespace ufs
         memcpy_s((void *)destAddr, buffer.size(), buffer.c_str(), buffer.size());
         inode.i_size += buffer.size();
 
-        BufferManager::getInstance()->brelse(bp);
+        BufferManager::getInstance()->bdwrite(bp);
 
         return Error::UFS_NOERR;
     }
