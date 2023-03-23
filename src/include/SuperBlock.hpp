@@ -44,5 +44,7 @@ namespace ufs
 
         int balloc(); // allocate a free disk blkno
         int ialloc(); // allocate a free inode
+        void bfree(int blkno); // free a disk blkno
+        void ifree(int inodeNo); // free a inode
     };
 }
