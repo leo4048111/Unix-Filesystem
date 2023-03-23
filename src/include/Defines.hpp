@@ -43,7 +43,8 @@ public:                                               \
         UFS_IMAGE_NO_FORMAT,
         UFS_CMD_NOT_FOUND,
         UFS_ERR_NO_SUCH_DIR_OR_FILE,
-        UFS_ERR_NOT_A_DIR
+        UFS_ERR_NOT_A_DIR,
+        UFS_ERR_NOT_A_FILE
     };
 
 #define TTY_BUFFER_SIZE 4096ULL

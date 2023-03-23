@@ -97,6 +97,7 @@ namespace ufs
         newFileInode.i_mode = Inode::IFCHR;
         newFileInode.i_nlink = 1;
         newFileInode.i_count = 1;
+        newFileInode.i_size = 0;
 
         // Allocate a new inode
         SuperBlock &sb = SuperBlockManager::getInstance()->superBlock();
@@ -118,7 +119,7 @@ namespace ufs
         {
             ec = Error::UFS_ERR_NOT_MOUNTED;
             return ec;
-        }   
+        }
 
         // Simply echo the msg
         Log::out(msg);
@@ -135,7 +136,7 @@ namespace ufs
         {
             ec = Error::UFS_ERR_NOT_MOUNTED;
             return ec;
-        }   
+        }
 
         // Steps to write data to a file
         // (1) Get current directory inode with InodeTable::iget()
@@ -146,7 +147,19 @@ namespace ufs
         // Find current directory inode
         Inode &curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
 
-        
+        for (size_t i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); i++)
+        {
+            DirectoryEntry &dirEntry = curDirInode.dirEntryAt(i);
+            if (strcmp(dirEntry._name, fileName.c_str()) == 0)
+            {
+                const Inode &dirInode = InodeTable::getInstance()->iget(dirEntry._ino);
+                if (dirInode.i_mode != Inode::IFCHR)
+                {
+                    ec = Error::UFS_ERR_NOT_A_FILE;
+                    return ec;
+                }
+            }
+        }
 
         return ec;
     }
@@ -171,7 +184,7 @@ namespace ufs
         // traverse every directory entry
         for (size_t i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); ++i)
         {
-            DirectoryEntry& dirEntry = curDirInode.dirEntryAt(i);
+            DirectoryEntry &dirEntry = curDirInode.dirEntryAt(i);
             std::string name = dirEntry._name;
             name += " \n"[i == curDirInode.i_size / sizeof(DirectoryEntry) - 1];
             Inode &inode = InodeTable::getInstance()->iget(dirEntry._ino);
@@ -193,24 +206,20 @@ namespace ufs
         // (4) Check if the directory entry is a directory
         // (5) Change current directory inode number to the directory entry's inode number
 
-        const Inode &curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
-        Buf *bp = BufferManager::getInstance()->bread(curDirInode.i_addr[0]);
-        DirectoryEntry *pDirEntry = (DirectoryEntry *)bp->b_addr;
-        BufferManager::getInstance()->brelse(bp);
+        Inode &curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
         for (int i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); ++i)
         {
-            if (strcmp(pDirEntry->_name, dirName.c_str()) == 0)
+            DirectoryEntry &dirEntry = curDirInode.dirEntryAt(i);
+            if (strcmp(dirEntry._name, dirName.c_str()) == 0)
             {
-                const Inode &dirInode = InodeTable::getInstance()->iget(pDirEntry->_ino);
+                const Inode &dirInode = InodeTable::getInstance()->iget(dirEntry._ino);
                 if (dirInode.i_mode != Inode::IFDIR)
                     return Error::UFS_ERR_NOT_A_DIR;
 
-                _curDirInodeNo = pDirEntry->_ino;
+                _curDirInodeNo = dirEntry._ino;
                 _curPath += dirName + "/";
                 return Error::UFS_NOERR;
             }
-
-            pDirEntry++;
         }
 
         return Error::UFS_ERR_NO_SUCH_DIR_OR_FILE;

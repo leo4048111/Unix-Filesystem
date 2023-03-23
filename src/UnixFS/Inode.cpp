@@ -51,6 +51,23 @@ namespace ufs
         this->i_lastr = -1;
     };
 
+    void Inode::fwrite(const std::string& buffer)
+    {
+        size_t totalSize = this->i_size;
+        int blkno = totalSize / DISK_BLOCK_SIZE;
+        Buf* bp = BufferManager::getInstance()->bread(blkno);
+
+        size_t offset = totalSize % DISK_BLOCK_SIZE;
+
+        // TODO: if current available space in the block is not enough, we need to allocate a new block
+
+        uintptr_t destAddr = (uintptr_t)bp->b_addr;
+        destAddr += offset;
+        memcpy_s((void*)destAddr, buffer.size(), buffer.c_str(), buffer.size());
+
+        BufferManager::getInstance()->brelse(bp);
+    }
+
     int Inode::bmap(int lbn)
     {
         return i_addr[lbn];

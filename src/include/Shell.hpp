@@ -27,7 +27,7 @@ namespace ufs
             LS,
             CD,
             TOUCH,
-            CAT,
+            ECHO,
             MKDIR
         };
 

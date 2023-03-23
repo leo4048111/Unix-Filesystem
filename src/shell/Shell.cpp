@@ -55,6 +55,9 @@ namespace ufs
             return InstCode::CD;
         if (s == "touch")
             return InstCode::TOUCH;
+        if (s == "echo")
+            return InstCode::ECHO;
+
         return InstCode::INVALID;
     }
 
@@ -88,24 +91,16 @@ namespace ufs
                 return Error::UFS_ERR_INVALID_COMMAND_ARG;
             return FileManager::getInstance()->touch(_splitCmd[1]);
         }
-            // case "unmount":
-            //     unmount();
-            //     break;
-            // case "format":
-            //     format();
-            //     break;
-            // case "cd":
-            //     cd();
-            //     break;
-            // case "ls":
-            //     ls();
-            //     break;
-            // case "rm":
-            //     rm();
-            //     break;
-            // case "mkdir":
-            //     mkdir();
-            //     break;
+        case InstCode::ECHO:
+        {
+            if (_splitCmd.size() == 2)
+                return FileManager::getInstance()->echo(_splitCmd[1]);
+
+            else if (_splitCmd.size() != 4 || _splitCmd[2] != ">")
+                return Error::UFS_ERR_INVALID_COMMAND_ARG;
+
+            return FileManager::getInstance()->echo(_splitCmd[3], _splitCmd[1]);
+        }
         }
 
         Log::warning("Command not found");
