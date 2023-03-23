@@ -82,7 +82,7 @@ namespace ufs
         return ec;
     }
 
-    DirectoryEntry &dirEntryAt(Inode &inode, int idx)
+    DirectoryEntry &FileSystem::dirEntryAt(Inode &inode, int idx)
     {
         size_t totalSize = inode.i_size;
 
@@ -115,6 +115,8 @@ namespace ufs
         inode.i_size += buffer.size();
 
         BufferManager::getInstance()->brelse(bp);
+
+        return Error::UFS_NOERR;
     }
 
     Error FileSystem::fread(Inode &inode, char *buf, int len)
