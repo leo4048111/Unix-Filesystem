@@ -45,8 +45,11 @@ namespace ufs
                     inode.i_addr[i + 1] = newBlock;
                 else if (i + 1 < Inode::LARGE_FILE_BLOCK)
                 {
+                    int lastIndirectBlock = (i - Inode::SMALL_FILE_BLOCK) / Inode::ADDRESS_PER_INDEX_BLOCK + Inode::SMALL_FILE_BLOCK;
                     int indirectBlock = (i + 1 - Inode::SMALL_FILE_BLOCK) / Inode::ADDRESS_PER_INDEX_BLOCK + Inode::SMALL_FILE_BLOCK;
-                    if (i < Inode::SMALL_FILE_BLOCK)
+                    if (i < Inode::SMALL_FILE_BLOCK) // alloc i_addr[6]
+                        inode.i_addr[indirectBlock] = sb.balloc();
+                    else if (lastIndirectBlock < indirectBlock) // alloc i_addr[7]
                         inode.i_addr[indirectBlock] = sb.balloc();
                     Buf *bp = BufferManager::getInstance()->bread(inode.i_addr[indirectBlock]);
                     int *addr = (int *)bp->b_addr;
