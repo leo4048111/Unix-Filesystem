@@ -154,22 +154,6 @@ namespace ufs
         }
     }
 
-    Error InodeTable::addDirectoryEntry(int inodeId, const std::string &name, const int ino)
-    {
-        Error ec = Error::UFS_NOERR;
-
-        Inode &inode = iget(inodeId);
-
-        DirectoryEntry entry;
-        strcpy_s(entry._name, name.c_str());
-        entry._ino = ino;
-
-        InodeTable::getInstance()->iwrite(inodeId, entry);
-        InodeTable::getInstance()->iupdate(inodeId, inode);
-        
-        return ec;
-    }
-
     template <>
     void InodeTable::iwrite<std::vector<BYTE>>(int inodeId, std::vector<BYTE> &data)
     {

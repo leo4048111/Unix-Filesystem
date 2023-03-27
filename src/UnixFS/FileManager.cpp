@@ -108,7 +108,7 @@ namespace ufs
         InodeTable::getInstance()->iupdate(newFileInode.i_number, newFileInode);
 
         // add directory entry for current file
-        ec = InodeTable::getInstance()->addDirectoryEntry(_curDirInodeNo, fileName, newFileInode.i_number);
+        FileSystem::getInstance()->addDirectoryEntry(_curDirInodeNo, fileName, newFileInode.i_number);
 
         return ec;
     }
@@ -318,18 +318,18 @@ namespace ufs
         InodeTable::getInstance()->iupdate(newDirInode.i_number, newDirInode);
 
         // Initialize directory entry
-        InodeTable::getInstance()->addDirectoryEntry(newDirInodeNo, ".", newDirInodeNo);
+        FileSystem::getInstance()->addDirectoryEntry(newDirInodeNo, ".", newDirInodeNo);
 
         if (!isRoot)
-            ec = InodeTable::getInstance()->addDirectoryEntry(newDirInodeNo, "..", _curDirInodeNo);
+            FileSystem::getInstance()->addDirectoryEntry(newDirInodeNo, "..", _curDirInodeNo);
 
         else
-            ec = InodeTable::getInstance()->addDirectoryEntry(newDirInodeNo, "..", newDirInodeNo);
+            FileSystem::getInstance()->addDirectoryEntry(newDirInodeNo, "..", newDirInodeNo);
 
         // update current directory inode
         if (!isRoot)
         {
-            ec = InodeTable::getInstance()->addDirectoryEntry(_curDirInodeNo, dirName, newDirInodeNo);
+            FileSystem::getInstance()->addDirectoryEntry(_curDirInodeNo, dirName, newDirInodeNo);
         }
 
         return ec;

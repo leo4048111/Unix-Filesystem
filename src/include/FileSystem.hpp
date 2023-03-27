@@ -29,6 +29,7 @@ namespace ufs
 
         void writeInodeCacheBackToDisk(Inode& inode);
 
+        void addDirectoryEntry(int inodeId, const std::string &name, const int ino);
         DirectoryEntry& dirEntryAt(Inode& inode, int idx); // find the idx-th directory entry in the directory
         void removeDirEntryAt(Inode& inode, int idx); // remove the idx-th directory entry in the directory
         Error fwrite(Inode& inode, std::vector<BYTE> &buffer); // write len bytes from buf to the file

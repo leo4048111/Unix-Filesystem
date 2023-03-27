@@ -100,6 +100,17 @@ namespace ufs
         return *dirEntry;
     }
 
+    void FileSystem::addDirectoryEntry(int inodeId, const std::string &name, const int ino)
+    {
+        Inode &inode = InodeTable::getInstance()->iget(inodeId);
+
+        DirectoryEntry entry;
+        strcpy_s(entry._name, name.c_str());
+        entry._ino = ino;
+
+        InodeTable::getInstance()->iwrite(inodeId, entry);
+    }
+
     void FileSystem::removeDirEntryAt(Inode &inode, int idx)
     {
         size_t totalSize = inode.i_size;
