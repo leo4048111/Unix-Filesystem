@@ -163,17 +163,14 @@ namespace ufs
         strcpy_s(entry._name, name.c_str());
         entry._ino = ino;
 
-        // check if a new disk block needs to be allocated
-        size_t curSize = inode.i_size;
-        size_t newSize = curSize + sizeof(DirectoryEntry);
-        inode.i_size = newSize;
-        int blkCnt = newSize / DISK_BLOCK_SIZE;
+        int curSize = inode.i_size;
         int curBlkCnt = curSize / DISK_BLOCK_SIZE;
+        
+        iexpand(inodeId, sizeof(DirectoryEntry));
 
-        if (inode.i_addr[blkCnt] == 0)
-            inode.i_addr[blkCnt] = SuperBlockManager::getInstance()->superBlock().balloc();
+        int blkno = inode.bmap(inode.i_size / DISK_BLOCK_SIZE);
 
-        Buf *bp = BufferManager::getInstance()->bread(inode.i_addr[blkCnt]);
+        Buf *bp = BufferManager::getInstance()->bread(blkno);
         DirectoryEntry *pEntry = (DirectoryEntry *)bp->b_addr;
 
         pEntry += (curSize - curBlkCnt * DISK_BLOCK_SIZE) / sizeof(DirectoryEntry);

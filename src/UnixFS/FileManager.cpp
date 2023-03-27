@@ -298,6 +298,7 @@ namespace ufs
         SuperBlock &sb = SuperBlockManager::getInstance()->superBlock();
         int newDirInodeNo = sb.ialloc();
         newDirInode.i_number = newDirInodeNo;
+        newDirInode.i_addr[0] = sb.balloc();
         InodeTable::getInstance()->iupdate(newDirInode.i_number, newDirInode);
 
         // Initialize directory entry
