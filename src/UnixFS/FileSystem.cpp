@@ -173,6 +173,23 @@ namespace ufs
             SuperBlockManager::getInstance()->superBlock().bfree(blkno);
         }
 
+        // free index table blocks
+        size_t totalInodeCnt = 0;
+        int fileDataBlkCnt = inode.i_size / DISK_BLOCK_SIZE;
+        if (fileDataBlkCnt >= Inode::SMALL_FILE_BLOCK)
+        {
+            if (fileDataBlkCnt < Inode::LARGE_FILE_BLOCK) // large file might use i_addr[6] and i_addr[7]
+                fileDataBlkCnt = (fileDataBlkCnt - Inode::SMALL_FILE_BLOCK) / Inode::ADDRESS_PER_INDEX_BLOCK + Inode::SMALL_FILE_BLOCK;
+            else if (fileDataBlkCnt < Inode::HUGE_FILE_BLOCK) // huge file might use i_addr[8] and i_addr[9]
+                fileDataBlkCnt = (fileDataBlkCnt - Inode::LARGE_FILE_BLOCK) / (Inode::ADDRESS_PER_INDEX_BLOCK * Inode::ADDRESS_PER_INDEX_BLOCK) + Inode::SMALL_FILE_BLOCK + 2;
+
+            for (int i = 6; i < fileDataBlkCnt; i++)
+            {
+                int blkno = inode.i_addr[i];
+                SuperBlockManager::getInstance()->superBlock().bfree(blkno);
+            }
+        }
+
         // Free inode
         SuperBlockManager::getInstance()->superBlock().ifree(inode.i_number);
 
