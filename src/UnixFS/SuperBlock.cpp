@@ -25,11 +25,13 @@ namespace ufs
 
     void SuperBlock::bfree(int blkno)
     {
-        s_inode[s_ninode++] = blkno;
+        s_fmod = true;
+        s_free[s_nfree++] = blkno;
     }
 
     void SuperBlock::ifree(int inodeNo)
     {
+        s_fmod = true;
         s_inode[s_ninode++] = inodeNo;
     }
 }
