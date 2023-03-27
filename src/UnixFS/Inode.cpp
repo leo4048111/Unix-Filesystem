@@ -36,6 +36,36 @@ namespace ufs
 
     int Inode::bmap(int lbn)
     {
-        return i_addr[lbn];
+        // i_addr[0] ~ i_addr[5] are direct indices
+        if(lbn < Inode::SMALL_FILE_BLOCK)
+            return i_addr[lbn];
+        else if(lbn < Inode::LARGE_FILE_BLOCK){
+            // i_addr[6] ~ i_addr[7] are single indirect indices
+            int indirectSingleBlkno = (lbn - Inode::SMALL_FILE_BLOCK) / Inode::ADDRESS_PER_INDEX_BLOCK;
+            Buf* bp = BufferManager::getInstance()->bread(i_addr[indirectSingleBlkno]);
+            int lbns[Inode::ADDRESS_PER_INDEX_BLOCK];
+            memcpy_s(lbns, DISK_BLOCK_SIZE, bp->b_addr, DISK_BLOCK_SIZE);
+            BufferManager::getInstance()->brelse(bp);
+            int indirectLbn = (lbn - Inode::SMALL_FILE_BLOCK) % Inode::ADDRESS_PER_INDEX_BLOCK;
+            return lbns[indirectLbn];
+        }
+        else if(lbn < Inode::HUGE_FILE_BLOCK){
+            // i_addr[8] ~ i_addr[9] are double indirect indices
+            int indirectDoubleBlknoFirst = (lbn - Inode::LARGE_FILE_BLOCK) / (Inode::ADDRESS_PER_INDEX_BLOCK * Inode::ADDRESS_PER_INDEX_BLOCK);
+            Buf* bp = BufferManager::getInstance()->bread(i_addr[indirectDoubleBlknoFirst]);
+            int lbns[Inode::ADDRESS_PER_INDEX_BLOCK];
+            memcpy_s(lbns, DISK_BLOCK_SIZE, bp->b_addr, DISK_BLOCK_SIZE);
+            BufferManager::getInstance()->brelse(bp);
+
+            int indirectDoubleBlknoSecond = ((lbn - Inode::LARGE_FILE_BLOCK) % (Inode::ADDRESS_PER_INDEX_BLOCK * Inode::ADDRESS_PER_INDEX_BLOCK)) / Inode::ADDRESS_PER_INDEX_BLOCK;
+            bp = BufferManager::getInstance()->bread(lbns[indirectDoubleBlknoSecond]);
+            memcpy_s(lbns, DISK_BLOCK_SIZE, bp->b_addr, DISK_BLOCK_SIZE);
+            BufferManager::getInstance()->brelse(bp);
+
+            int indirectLbn = ((lbn - Inode::LARGE_FILE_BLOCK) % (Inode::ADDRESS_PER_INDEX_BLOCK * Inode::ADDRESS_PER_INDEX_BLOCK)) % Inode::ADDRESS_PER_INDEX_BLOCK;
+            return lbns[indirectLbn];
+        }
+
+        return -1;
     };
 }

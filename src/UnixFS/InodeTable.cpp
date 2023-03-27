@@ -26,6 +26,54 @@ namespace ufs
         _inodes[inodeId].i_flag |= Inode::INodeFlag::IUPD;
     }
 
+    void InodeTable::iexpand(int inodeId, const size_t size)
+    {
+        UFS_DEBUG_INFO(Log::format("iexpand: inode %d, size %d", inodeId, size));
+        SuperBlock &sb = SuperBlockManager::getInstance()->superBlock();
+        Inode &inode = iget(inodeId);
+        inode.i_flag |= Inode::INodeFlag::IUPD | Inode::INodeFlag::IACC;
+        int curDiskBlockCount = inode.i_size / DISK_BLOCK_SIZE;
+        inode.i_size += size;
+        int newDiskBlockCount = inode.i_size / DISK_BLOCK_SIZE;
+        if (newDiskBlockCount > curDiskBlockCount)
+        {
+            // need to allocate new disk blocks
+            for (int i = curDiskBlockCount; i < newDiskBlockCount; i++)
+            {
+                int newBlock = SuperBlockManager::getInstance()->superBlock().ialloc();
+                if (i + 1 < Inode::SMALL_FILE_BLOCK)
+                    inode.i_addr[i + 1] = newBlock;
+                else if (i + 1 < Inode::LARGE_FILE_BLOCK)
+                {
+                    int indirectBlock = (i + 1 - Inode::SMALL_FILE_BLOCK) / Inode::ADDRESS_PER_INDEX_BLOCK + Inode::SMALL_FILE_BLOCK;
+                    if (i < Inode::SMALL_FILE_BLOCK)
+                        inode.i_addr[indirectBlock] = sb.balloc();
+                    Buf *bp = BufferManager::getInstance()->bread(inode.i_addr[indirectBlock]);
+                    int *addr = (int *)bp->b_addr;
+                    addr[(i + 1 - Inode::SMALL_FILE_BLOCK) % Inode::ADDRESS_PER_INDEX_BLOCK] = newBlock;
+                    BufferManager::getInstance()->bdwrite(bp);
+                }
+                else if (i + 1 < Inode::HUGE_FILE_BLOCK)
+                {
+                    int indirectDoubleBlknoFirst = (i + 1 - Inode::LARGE_FILE_BLOCK) / (Inode::ADDRESS_PER_INDEX_BLOCK * Inode::ADDRESS_PER_INDEX_BLOCK) + Inode::SMALL_FILE_BLOCK + 2;
+                    if(i < Inode::LARGE_FILE_BLOCK)
+                        inode.i_addr[indirectDoubleBlknoFirst] = sb.balloc();
+
+                    Buf* bp = BufferManager::getInstance()->bread(inode.i_addr[indirectDoubleBlknoFirst]);
+                    int* addr = (int*)bp->b_addr;
+                    
+                    int curIndirectDoubleBlknoSecond = ((i + 1 - Inode::LARGE_FILE_BLOCK) % (Inode::ADDRESS_PER_INDEX_BLOCK * Inode::ADDRESS_PER_INDEX_BLOCK)) / Inode::ADDRESS_PER_INDEX_BLOCK;
+                    int lastIndirectDoubleBlknoSecond = curIndirectDoubleBlknoSecond;
+                    if(i >= Inode::LARGE_FILE_BLOCK)
+                        lastIndirectDoubleBlknoSecond = ((i - Inode::LARGE_FILE_BLOCK) % (Inode::ADDRESS_PER_INDEX_BLOCK * Inode::ADDRESS_PER_INDEX_BLOCK)) / Inode::ADDRESS_PER_INDEX_BLOCK;
+                    if(curIndirectDoubleBlknoSecond > lastIndirectDoubleBlknoSecond)
+                        addr[curIndirectDoubleBlknoSecond] = sb.balloc();
+                    BufferManager::getInstance()->bdwrite(bp);
+                }
+            }
+        }
+    }
+
     Inode &InodeTable::iread(int inodeId)
     {
         UFS_DEBUG_INFO(Log::format("Preparing to iread inode %d from disk", inodeId));
@@ -109,7 +157,7 @@ namespace ufs
     Error InodeTable::addDirectoryEntry(int inodeId, const std::string &name, const int ino)
     {
         Error ec = Error::UFS_NOERR;
-        Inode& inode = iget(inodeId);
+        Inode &inode = iget(inodeId);
 
         DirectoryEntry entry;
         strcpy_s(entry._name, name.c_str());
@@ -122,11 +170,11 @@ namespace ufs
         int blkCnt = newSize / DISK_BLOCK_SIZE;
         int curBlkCnt = curSize / DISK_BLOCK_SIZE;
 
-        if(inode.i_addr[blkCnt] == 0) 
+        if (inode.i_addr[blkCnt] == 0)
             inode.i_addr[blkCnt] = SuperBlockManager::getInstance()->superBlock().balloc();
 
-        Buf* bp = BufferManager::getInstance()->bread(inode.i_addr[blkCnt]);
-        DirectoryEntry* pEntry = (DirectoryEntry*)bp->b_addr;
+        Buf *bp = BufferManager::getInstance()->bread(inode.i_addr[blkCnt]);
+        DirectoryEntry *pEntry = (DirectoryEntry *)bp->b_addr;
 
         pEntry += (curSize - curBlkCnt * DISK_BLOCK_SIZE) / sizeof(DirectoryEntry);
 
