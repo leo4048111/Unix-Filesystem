@@ -523,7 +523,7 @@ namespace ufs
 
         Inode &curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
 
-        for (int i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry) + 1; i++)
+        for (int i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); i++)
         {
             DirectoryEntry &entry = FileSystem::getInstance()->dirEntryAt(curDirInode, i);
             if (strcmp(entry._name, dstName.c_str()) == 0)
@@ -535,7 +535,7 @@ namespace ufs
 
         ec = touch(dstName);
         int newFileInodeNo = -1;
-        for (int i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry) + 1; i++)
+        for (int i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); i++)
         {
             DirectoryEntry &entry = FileSystem::getInstance()->dirEntryAt(curDirInode, i);
             if (strcmp(entry._name, dstName.c_str()) == 0)
