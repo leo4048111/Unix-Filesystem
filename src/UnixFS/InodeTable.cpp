@@ -157,29 +157,16 @@ namespace ufs
     Error InodeTable::addDirectoryEntry(int inodeId, const std::string &name, const int ino)
     {
         Error ec = Error::UFS_NOERR;
+        
         Inode &inode = iget(inodeId);
 
         DirectoryEntry entry;
         strcpy_s(entry._name, name.c_str());
         entry._ino = ino;
 
-        int curSize = inode.i_size;
-        int curBlkCnt = curSize / DISK_BLOCK_SIZE;
-        
-        iexpand(inodeId, sizeof(DirectoryEntry));
-
-        int blkno = inode.bmap(inode.i_size / DISK_BLOCK_SIZE);
-
-        Buf *bp = BufferManager::getInstance()->bread(blkno);
-        DirectoryEntry *pEntry = (DirectoryEntry *)bp->b_addr;
-
-        pEntry += (curSize - curBlkCnt * DISK_BLOCK_SIZE) / sizeof(DirectoryEntry);
-
-        memcpy_s(pEntry, sizeof(DirectoryEntry), &entry, sizeof(DirectoryEntry));
-
-        BufferManager::getInstance()->bdwrite(bp);
+        InodeTable::getInstance()->iwrite(inodeId, entry);
         InodeTable::getInstance()->iupdate(inodeId, inode);
-
+        
         return ec;
     }
 }
