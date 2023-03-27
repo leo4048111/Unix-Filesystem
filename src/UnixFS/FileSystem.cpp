@@ -122,28 +122,15 @@ namespace ufs
         InodeTable::getInstance()->iupdate(inode.i_number, inode);
     }
 
-    Error FileSystem::fwrite(Inode &inode, const std::string &buffer)
+    Error FileSystem::fwrite(Inode &inode, std::vector<BYTE> &buffer)
     {
         size_t totalSize = inode.i_size;
         int idx = totalSize / DISK_BLOCK_SIZE;
-        int blkno = inode.bmap(idx);
-        Buf *bp = BufferManager::getInstance()->bread(blkno);
-
-        size_t offset = totalSize % DISK_BLOCK_SIZE;
-
-        // TODO: if current available space in the block is not enough, we need to allocate a new block
-
-        uintptr_t destAddr = (uintptr_t)bp->b_addr;
-        destAddr += offset;
-        memcpy_s((void *)destAddr, buffer.size(), buffer.c_str(), buffer.size());
-        inode.i_size += buffer.size();
-
-        BufferManager::getInstance()->bdwrite(bp);
-
+        InodeTable::getInstance()->iwrite(inode.i_number, buffer);
         return Error::UFS_NOERR;
     }
 
-    Error FileSystem::fread(Inode &inode, std::string &buffer)
+    Error FileSystem::fread(Inode &inode, std::vector<BYTE> &buffer)
     {
         size_t totalSize = inode.i_size;
         int maxIdx = totalSize / DISK_BLOCK_SIZE + 1;
@@ -155,7 +142,9 @@ namespace ufs
 
             size_t sizeToRead = ((inode.i_size - i * DISK_BLOCK_SIZE) > DISK_BLOCK_SIZE ? DISK_BLOCK_SIZE : (inode.i_size - i * DISK_BLOCK_SIZE));
 
-            buffer.append((char *)bp->b_addr, sizeToRead);
+            for (size_t j = 0; j < sizeToRead; j++)
+                buffer.push_back(((char *)bp->b_addr)[j]);
+
             BufferManager::getInstance()->brelse(bp);
         }
 
@@ -193,7 +182,7 @@ namespace ufs
         for (int i = 0; i < 2; i++)
         {
             DirectoryEntry &dirEntry = dirEntryAt(inode, i);
-            Inode& tmpInode = InodeTable::getInstance()->iget(dirEntry._ino);
+            Inode &tmpInode = InodeTable::getInstance()->iget(dirEntry._ino);
             freeInode(tmpInode);
         }
 
@@ -202,11 +191,11 @@ namespace ufs
         {
             DirectoryEntry &dirEntry = dirEntryAt(inode, i);
             DirectoryEntry &nextDirEntry = dirEntryAt(inode, i + 1);
-            
-            Inode& tmpInode = InodeTable::getInstance()->iget(dirEntry._ino);
-            if(tmpInode.i_mode == Inode::IFDIR)
+
+            Inode &tmpInode = InodeTable::getInstance()->iget(dirEntry._ino);
+            if (tmpInode.i_mode == Inode::IFDIR)
                 freeThisInodeAndAllSubInodes(tmpInode);
-            else 
+            else
                 freeInode(tmpInode);
 
             dirEntry = nextDirEntry;

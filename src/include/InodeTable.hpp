@@ -43,6 +43,9 @@ namespace ufs
         char padding[4688];
     };
 
+    template<>
+    void InodeTable::iwrite<std::vector<BYTE>>(int inodeId, std::vector<BYTE> &data);
+
     template <typename T>
     void InodeTable::iwrite(int inodeId, T &data)
     {
@@ -78,5 +81,7 @@ namespace ufs
             sizeToWrite -= tmpSize;
             BufferManager::getInstance()->bdwrite(bp);
         }
+
+        iupdate(inodeId, inode);
     }
 }

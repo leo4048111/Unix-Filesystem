@@ -147,6 +147,9 @@ namespace ufs
 
         // Find current directory inode
         Inode &curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
+        std::vector<BYTE> buffer;
+        for(auto& c : data)
+            buffer.push_back(c);
 
         for (size_t i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); i++)
         {
@@ -160,7 +163,7 @@ namespace ufs
                     return ec;
                 }
 
-                ec = FileSystem::getInstance()->fwrite(fileInode, data);
+                ec = FileSystem::getInstance()->fwrite(fileInode, buffer);
                 InodeTable::getInstance()->iupdate(fileInode.i_number, fileInode);
                 return ec;
             }
@@ -271,10 +274,12 @@ namespace ufs
                     return ec;
                 }
 
-                std::string buffer;
+                std::vector<BYTE> buffer;
                 ec = FileSystem::getInstance()->fread(fileInode, buffer);
-                buffer += '\n';
-                Log::out(buffer);
+                buffer.push_back('\n');
+                std::string s;
+                for(auto& c : buffer) s += c;
+                Log::out(s);
                 return ec;
             }
         }
