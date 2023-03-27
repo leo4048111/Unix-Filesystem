@@ -205,6 +205,14 @@ namespace ufs
 
     Error FileManager::cd(const std::string &dirName)
     {
+        Error ec = Error::UFS_NOERR;
+
+        if (!isMounted())
+        {
+            ec = Error::UFS_ERR_NOT_MOUNTED;
+            return ec;
+        }
+
         // steps to change current directory
         // (1) Get current directory inode with InodeTable::iget()
         // (2) Read all directory entries in current directory inode with Inode::read()
@@ -228,7 +236,8 @@ namespace ufs
             }
         }
 
-        return Error::UFS_ERR_NO_SUCH_DIR_OR_FILE;
+        ec = Error::UFS_ERR_NO_SUCH_DIR_OR_FILE;
+        return ec;
     }
 
     Error FileManager::cat(const std::string &fileName)
