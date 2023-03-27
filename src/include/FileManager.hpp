@@ -22,6 +22,7 @@ namespace ufs
         Error cat(const std::string &fileName);
         Error rm(const std::string &fileName);
         Error rmdir(const std::string& dirName);
+        Error cp(const std::string& srcName, const std::string& dstName); // srcName must be an existing file outside of this file system
 
         bool isMounted() const { return _isMounted; }
 

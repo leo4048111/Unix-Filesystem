@@ -31,7 +31,8 @@ namespace ufs
             MKDIR,
             CAT,
             RM,
-            RMDIR
+            RMDIR,
+            CP
         };
 
         char _ttyBuffer[TTY_BUFFER_SIZE];
@@ -44,6 +45,6 @@ namespace ufs
 
         Error runCmd(InstCode code);
 
-        InstCode cmdLiteralToInstCode(const std::string &s);
+        InstCode cmdLiteralToInstCode(std::string &s);
     };
 }

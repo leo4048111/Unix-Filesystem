@@ -39,8 +39,11 @@ namespace ufs
         delete tmpBuffer;
     }
 
-    Shell::InstCode Shell::cmdLiteralToInstCode(const std::string &s)
+    Shell::InstCode Shell::cmdLiteralToInstCode(std::string &s)
     {
+        for(int i = 0; i < s.size(); i++)
+            s[i] = std::tolower(s[i]);
+
         if (s == "mount")
             return InstCode::MOUNT;
         if (s == "unmount")
@@ -63,6 +66,8 @@ namespace ufs
             return InstCode::RM;
         if (s == "rmdir")
             return InstCode::RMDIR;
+        if (s == "cp")
+            return InstCode::CP;
 
         return InstCode::INVALID;
     }
@@ -124,6 +129,12 @@ namespace ufs
             if (_splitCmd.size() != 2)
                 return Error::UFS_ERR_INVALID_COMMAND_ARG;
             return FileManager::getInstance()->rmdir(_splitCmd[1]);
+        }
+        case InstCode::CP:
+        {
+            if (_splitCmd.size() != 3)
+                return Error::UFS_ERR_INVALID_COMMAND_ARG;
+            return FileManager::getInstance()->cp(_splitCmd[1], _splitCmd[2]);
         }
         }
 

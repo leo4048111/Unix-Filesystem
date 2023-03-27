@@ -41,7 +41,7 @@ namespace ufs
             return i_addr[lbn];
         else if(lbn < Inode::LARGE_FILE_BLOCK){
             // i_addr[6] ~ i_addr[7] are single indirect indices
-            int indirectSingleBlkno = (lbn - Inode::SMALL_FILE_BLOCK) / Inode::ADDRESS_PER_INDEX_BLOCK;
+            int indirectSingleBlkno = (lbn - Inode::SMALL_FILE_BLOCK) / Inode::ADDRESS_PER_INDEX_BLOCK + Inode::SMALL_FILE_BLOCK;
             Buf* bp = BufferManager::getInstance()->bread(i_addr[indirectSingleBlkno]);
             int lbns[Inode::ADDRESS_PER_INDEX_BLOCK];
             memcpy_s(lbns, DISK_BLOCK_SIZE, bp->b_addr, DISK_BLOCK_SIZE);
@@ -51,7 +51,7 @@ namespace ufs
         }
         else if(lbn < Inode::HUGE_FILE_BLOCK){
             // i_addr[8] ~ i_addr[9] are double indirect indices
-            int indirectDoubleBlknoFirst = (lbn - Inode::LARGE_FILE_BLOCK) / (Inode::ADDRESS_PER_INDEX_BLOCK * Inode::ADDRESS_PER_INDEX_BLOCK);
+            int indirectDoubleBlknoFirst = (lbn - Inode::LARGE_FILE_BLOCK) / (Inode::ADDRESS_PER_INDEX_BLOCK * Inode::ADDRESS_PER_INDEX_BLOCK) + Inode::SMALL_FILE_BLOCK + 2;
             Buf* bp = BufferManager::getInstance()->bread(i_addr[indirectDoubleBlknoFirst]);
             int lbns[Inode::ADDRESS_PER_INDEX_BLOCK];
             memcpy_s(lbns, DISK_BLOCK_SIZE, bp->b_addr, DISK_BLOCK_SIZE);

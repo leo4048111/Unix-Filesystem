@@ -40,7 +40,7 @@ namespace ufs
             // need to allocate new disk blocks
             for (int i = curDiskBlockCount; i < newDiskBlockCount; i++)
             {
-                int newBlock = SuperBlockManager::getInstance()->superBlock().ialloc();
+                int newBlock = SuperBlockManager::getInstance()->superBlock().balloc();
                 if (i + 1 < Inode::SMALL_FILE_BLOCK)
                     inode.i_addr[i + 1] = newBlock;
                 else if (i + 1 < Inode::LARGE_FILE_BLOCK)

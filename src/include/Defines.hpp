@@ -44,7 +44,8 @@ public:                                               \
         UFS_CMD_NOT_FOUND,
         UFS_ERR_NO_SUCH_DIR_OR_FILE,
         UFS_ERR_NOT_A_DIR,
-        UFS_ERR_NOT_A_FILE
+        UFS_ERR_NOT_A_FILE,
+        UFS_ERR_FILE_ALREADY_EXISTS
     };
 
 #define TTY_BUFFER_SIZE 4096ULL

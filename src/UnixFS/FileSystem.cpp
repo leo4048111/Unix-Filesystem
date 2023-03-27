@@ -124,8 +124,6 @@ namespace ufs
 
     Error FileSystem::fwrite(Inode &inode, std::vector<BYTE> &buffer)
     {
-        size_t totalSize = inode.i_size;
-        int idx = totalSize / DISK_BLOCK_SIZE;
         InodeTable::getInstance()->iwrite(inode.i_number, buffer);
         return Error::UFS_NOERR;
     }

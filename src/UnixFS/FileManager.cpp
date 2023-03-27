@@ -10,6 +10,7 @@
 #include "DiskDriver.hpp"
 
 #include <time.h>
+#include <fstream>
 
 namespace ufs
 {
@@ -148,7 +149,7 @@ namespace ufs
         // Find current directory inode
         Inode &curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
         std::vector<BYTE> buffer;
-        for(auto& c : data)
+        for (auto &c : data)
             buffer.push_back(c);
 
         for (size_t i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); i++)
@@ -278,7 +279,8 @@ namespace ufs
                 ec = FileSystem::getInstance()->fread(fileInode, buffer);
                 buffer.push_back('\n');
                 std::string s;
-                for(auto& c : buffer) s += c;
+                for (auto &c : buffer)
+                    s += c;
                 Log::out(s);
                 return ec;
             }
@@ -362,12 +364,12 @@ namespace ufs
         tmpSB.s_time = time(NULL);
 
         // TODO Implement chain memory allocation
-        for (tmpSB.s_nfree = 0; tmpSB.s_nfree < 100; tmpSB.s_nfree++)
-            tmpSB.s_free[tmpSB.s_nfree] = 99 - tmpSB.s_nfree;
+        for (tmpSB.s_nfree = 0; tmpSB.s_nfree < 500; tmpSB.s_nfree++)
+            tmpSB.s_free[tmpSB.s_nfree] = 499 - tmpSB.s_nfree;
 
         // init inode table
-        for (tmpSB.s_ninode = 0; tmpSB.s_ninode < 100; tmpSB.s_ninode++)
-            tmpSB.s_inode[tmpSB.s_ninode] = 99 - tmpSB.s_ninode;
+        for (tmpSB.s_ninode = 0; tmpSB.s_ninode < 500; tmpSB.s_ninode++)
+            tmpSB.s_inode[tmpSB.s_ninode] = 499 - tmpSB.s_ninode;
 
         // init root directory
         int superBlockDiskBlkno = tmpSB.balloc(); // alloc 0# diskblock to store superblock
@@ -487,6 +489,64 @@ namespace ufs
         }
 
         ec = Error::UFS_ERR_NO_SUCH_DIR_OR_FILE;
+        return ec;
+    }
+
+    Error FileManager::cp(const std::string &srcName, const std::string &dstName)
+    {
+        Error ec = Error::UFS_NOERR;
+
+        if (!isMounted())
+        {
+            ec = Error::UFS_ERR_NOT_MOUNTED;
+            return ec;
+        }
+
+        std::fstream fs;
+        fs.open(srcName, std::fstream::in | std::fstream::binary);
+
+        if (!fs.is_open())
+        {
+            ec = Error::UFS_ERR_NO_SUCH_DIR_OR_FILE;
+            return ec;
+        }
+
+        std::vector<BYTE> buffer;
+        char tmp;
+        fs.seekg(0, std::ios::beg);
+        while (fs.get(tmp))
+        {
+            BYTE byte = (BYTE)tmp;
+            buffer.push_back(byte);
+        }
+        fs.close();
+
+        Inode &curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
+
+        for (int i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry) + 1; i++)
+        {
+            DirectoryEntry &entry = FileSystem::getInstance()->dirEntryAt(curDirInode, i);
+            if (strcmp(entry._name, dstName.c_str()) == 0)
+            {
+                ec = Error::UFS_ERR_FILE_ALREADY_EXISTS;
+                return ec;
+            }
+        }
+
+        ec = touch(dstName);
+        int newFileInodeNo = -1;
+        for (int i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry) + 1; i++)
+        {
+            DirectoryEntry &entry = FileSystem::getInstance()->dirEntryAt(curDirInode, i);
+            if (strcmp(entry._name, dstName.c_str()) == 0)
+            {
+                newFileInodeNo = entry._ino;
+                break;
+            }
+        }
+
+        Inode &newFileInode = InodeTable::getInstance()->iget(newFileInodeNo);
+        FileSystem::getInstance()->fwrite(newFileInode, buffer);
         return ec;
     }
 }
