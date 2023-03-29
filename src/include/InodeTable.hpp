@@ -34,7 +34,7 @@ namespace ufs
         template <typename T>
         void iwrite(int inodeId, T &data);
 
-        void iexpand(int inodeId, const size_t size);
+        void iexpand(int inodeId, const int size); // note that size can be negative
 
         Error addDirectoryEntry(int inodeId, const std::string &name, const int ino);
 

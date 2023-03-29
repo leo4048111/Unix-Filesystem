@@ -549,4 +549,92 @@ namespace ufs
         FileSystem::getInstance()->fwrite(newFileInode, buffer);
         return ec;
     }
+
+    Error FileManager::truncate(const std::string &fileName, int newSize)
+    {
+        Error ec = Error::UFS_NOERR;
+
+        if (!isMounted())
+        {
+            ec = Error::UFS_ERR_NOT_MOUNTED;
+            return ec;
+        }
+
+        // steps to truncate a file
+        // (1) Get current directory inode with InodeTable::iget()
+        // (2) Check if a directory entry with valid filename exists
+        // (3) Get the inode for the file
+        // (4) Truncate data from disk block pointed by the file inode's i_addr
+        // (5) update inode's i_size
+
+        Inode &curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
+        for (int i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); i++)
+        {
+            DirectoryEntry &entry = FileSystem::getInstance()->dirEntryAt(curDirInode, i);
+            if (strcmp(entry._name, fileName.c_str()) == 0)
+            {
+                Inode &fileInode = InodeTable::getInstance()->iget(entry._ino);
+                if (fileInode.i_mode != Inode::IFCHR)
+                {
+                    ec = Error::UFS_ERR_NOT_A_FILE;
+                    return ec;
+                }
+
+                InodeTable::getInstance()->iexpand(fileInode.i_number, newSize - fileInode.i_size);
+                return ec;
+            }
+        }
+
+        ec = Error::UFS_ERR_NO_SUCH_DIR_OR_FILE;
+        return ec;
+    }
+
+    Error FileManager::tail(const std::string &fileName, int offset, int size, const std::string &newFileName)
+    {
+        Error ec = Error::UFS_NOERR;
+
+        if (!isMounted())
+        {
+            ec = Error::UFS_ERR_NOT_MOUNTED;
+            return ec;
+        }
+
+        Inode &curDirInode = InodeTable::getInstance()->iget(_curDirInodeNo);
+        for (int i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); i++)
+        {
+            DirectoryEntry &entry = FileSystem::getInstance()->dirEntryAt(curDirInode, i);
+            if (strcmp(entry._name, fileName.c_str()) == 0)
+            {
+                Inode &fileInode = InodeTable::getInstance()->iget(entry._ino);
+                if (fileInode.i_mode != Inode::IFCHR)
+                {
+                    ec = Error::UFS_ERR_NOT_A_FILE;
+                    return ec;
+                }
+
+                std::vector<BYTE> buffer;
+                FileSystem::getInstance()->fread(fileInode, buffer);
+                std::vector<BYTE> newBuf;
+                for (int i = offset; i < offset + size && i < buffer.size(); i++)
+                    newBuf.push_back(buffer[i]);
+
+                touch(newFileName);
+                for (int i = 0; i < curDirInode.i_size / sizeof(DirectoryEntry); i++)
+                {
+                    DirectoryEntry &tmp = FileSystem::getInstance()->dirEntryAt(curDirInode, i);
+                    if (strcmp(tmp._name, newFileName.c_str()) == 0)
+                    {
+                        Inode &tmpInode = InodeTable::getInstance()->iget(tmp._ino);
+                        FileSystem::getInstance()->fwrite(tmpInode, newBuf);
+                        break;
+                    }
+                }
+
+                return ec;
+            }
+        }
+
+        ec = Error::UFS_ERR_NO_SUCH_DIR_OR_FILE;
+        return ec;
+    }
 }

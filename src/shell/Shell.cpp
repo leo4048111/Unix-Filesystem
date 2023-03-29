@@ -68,6 +68,10 @@ namespace ufs
             return InstCode::RMDIR;
         if (s == "cp")
             return InstCode::CP;
+        if (s == "truncate")
+            return InstCode::TRUNCATE;
+        if (s == "tail")
+            return InstCode::TAIL;
 
         return InstCode::INVALID;
     }
@@ -135,6 +139,24 @@ namespace ufs
             if (_splitCmd.size() != 3)
                 return Error::UFS_ERR_INVALID_COMMAND_ARG;
             return FileManager::getInstance()->cp(_splitCmd[1], _splitCmd[2]);
+        }
+        case InstCode::TRUNCATE:
+        {
+            if (_splitCmd.size() != 4)
+                return Error::UFS_ERR_INVALID_COMMAND_ARG;
+            if (_splitCmd[1] != "-s")
+                return Error::UFS_ERR_INVALID_COMMAND_ARG;
+            return FileManager::getInstance()->truncate(_splitCmd[2], std::stoi(_splitCmd[3]));
+        }
+        case InstCode::TAIL:
+        {
+            if (_splitCmd.size() != 7)
+                return Error::UFS_ERR_INVALID_COMMAND_ARG;
+            if (_splitCmd[1] != "-c")
+                return Error::UFS_ERR_INVALID_COMMAND_ARG;
+            if (_splitCmd[5] != ">")
+                return Error::UFS_ERR_INVALID_COMMAND_ARG;
+            return FileManager::getInstance()->tail( _splitCmd[4], std::stoi(_splitCmd[2]), std::stoi(_splitCmd[3]), _splitCmd[6]);
         }
         }
 

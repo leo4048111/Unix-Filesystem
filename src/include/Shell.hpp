@@ -32,7 +32,9 @@ namespace ufs
             CAT,
             RM,
             RMDIR,
-            CP
+            CP,
+            TRUNCATE,
+            TAIL
         };
 
         char _ttyBuffer[TTY_BUFFER_SIZE];

@@ -23,6 +23,8 @@ namespace ufs
         Error rm(const std::string &fileName);
         Error rmdir(const std::string& dirName);
         Error cp(const std::string& srcName, const std::string& dstName); // srcName must be an existing file outside of this file system
+        Error truncate(const std::string& fileName, int newSize); // truncate the file to newSize bytes
+        Error tail(const std::string& fileName, int offset, int size, const std::string &newFileName);
 
         bool isMounted() const { return _isMounted; }
 

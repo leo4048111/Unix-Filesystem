@@ -26,7 +26,7 @@ namespace ufs
         _inodes[inodeId].i_flag |= Inode::INodeFlag::IUPD;
     }
 
-    void InodeTable::iexpand(int inodeId, const size_t size)
+    void InodeTable::iexpand(int inodeId, const int size)
     {
         UFS_DEBUG_INFO(Log::format("iexpand: inode %d, size %d", inodeId, size));
         SuperBlock &sb = SuperBlockManager::getInstance()->superBlock();
@@ -72,6 +72,28 @@ namespace ufs
                     if(curIndirectDoubleBlknoSecond > lastIndirectDoubleBlknoSecond)
                         addr[curIndirectDoubleBlknoSecond] = sb.balloc();
                     BufferManager::getInstance()->bdwrite(bp);
+                }
+            }
+        }
+        else if(newDiskBlockCount < curDiskBlockCount)
+        {
+            for (int i = curDiskBlockCount; i > newDiskBlockCount; i--)
+            {
+                int blkno = inode.bmap(i);
+                sb.bfree(blkno);
+                if((curDiskBlockCount - Inode::SMALL_FILE_BLOCK) % Inode::ADDRESS_PER_INDEX_BLOCK == 0)
+                {
+                    int indirectBlock = (i - Inode::SMALL_FILE_BLOCK) / Inode::ADDRESS_PER_INDEX_BLOCK + Inode::SMALL_FILE_BLOCK;
+                    sb.bfree(inode.i_addr[indirectBlock]);
+                }
+                else if((curDiskBlockCount - Inode::LARGE_FILE_BLOCK) % (Inode::ADDRESS_PER_INDEX_BLOCK * Inode::ADDRESS_PER_INDEX_BLOCK) == 0)
+                {
+                    int indirectDoubleBlknoFirst = (i - Inode::LARGE_FILE_BLOCK) / (Inode::ADDRESS_PER_INDEX_BLOCK * Inode::ADDRESS_PER_INDEX_BLOCK) + Inode::SMALL_FILE_BLOCK + 2;
+                    int indirectDoubleBlknoSecond = (i - Inode::LARGE_FILE_BLOCK) % (Inode::ADDRESS_PER_INDEX_BLOCK * Inode::ADDRESS_PER_INDEX_BLOCK) / Inode::ADDRESS_PER_INDEX_BLOCK;
+                    Buf* bp = BufferManager::getInstance()->bread(inode.i_addr[indirectDoubleBlknoFirst]);
+                    int* addr = (int*)bp->b_addr;
+                    sb.bfree(addr[indirectDoubleBlknoSecond]);
+                    BufferManager::getInstance()->brelse(bp);
                 }
             }
         }
