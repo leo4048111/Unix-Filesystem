@@ -95,7 +95,7 @@ namespace ufs
 
         dirEntry += (idx % (DISK_BLOCK_SIZE / sizeof(DirectoryEntry)));
 
-        BufferManager::getInstance()->brelse(bp);
+        BufferManager::getInstance()->bdwrite(bp);
 
         return *dirEntry;
     }
