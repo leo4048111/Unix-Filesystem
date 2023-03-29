@@ -83,7 +83,7 @@ namespace ufs
         return ec;
     }
 
-    DirectoryEntry &FileSystem::dirEntryAt(Inode &inode, int idx)
+    DirectoryEntry &FileSystem::dirEntryAt(Inode &inode, int idx, bool willModifyEntry)
     {
         size_t totalSize = inode.i_size;
 
@@ -95,7 +95,10 @@ namespace ufs
 
         dirEntry += (idx % (DISK_BLOCK_SIZE / sizeof(DirectoryEntry)));
 
-        BufferManager::getInstance()->bdwrite(bp);
+        if (!willModifyEntry)
+            BufferManager::getInstance()->brelse(bp);
+        else
+            BufferManager::getInstance()->bdwrite(bp);
 
         return *dirEntry;
     }
@@ -120,8 +123,8 @@ namespace ufs
         // move all the entries after the idx to the front
         for (int i = idx; i < numDirectEntries - 1; i++)
         {
-            DirectoryEntry &dirEntry = dirEntryAt(inode, i);
-            DirectoryEntry &nextDirEntry = dirEntryAt(inode, i + 1);
+            DirectoryEntry &dirEntry = dirEntryAt(inode, i, true);
+            DirectoryEntry &nextDirEntry = dirEntryAt(inode, i + 1, true);
 
             dirEntry = nextDirEntry;
         }
@@ -204,15 +207,7 @@ namespace ufs
 
         size_t numDirectEntries = totalSize / sizeof(DirectoryEntry);
 
-        // remove "." and ".."
-        for (int i = 0; i < 2; i++)
-        {
-            DirectoryEntry &dirEntry = dirEntryAt(inode, i);
-            Inode &tmpInode = InodeTable::getInstance()->iget(dirEntry._ino);
-            freeInode(tmpInode);
-        }
-
-        // remove every sub inode
+        // remove every sub inode, ignore '.' and '..'
         for (int i = 2; i < numDirectEntries - 1; i++)
         {
             DirectoryEntry &dirEntry = dirEntryAt(inode, i);
