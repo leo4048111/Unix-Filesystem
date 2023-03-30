@@ -45,7 +45,7 @@ namespace ufs
             _isMounted = true;
 
         _curDirInodeNo = 0;
-        _curPath = "/";
+        _curPath.clear();
 
         return ec;
     }
@@ -235,7 +235,14 @@ namespace ufs
                     return Error::UFS_ERR_NOT_A_DIR;
 
                 _curDirInodeNo = dirEntry._ino;
-                _curPath += dirName + "/";
+                
+                if(dirName == "..")
+                {
+                    if(_curPath.size()) _curPath.pop_back();
+                }
+                else if(dirName != ".")
+                    _curPath.push_back(dirName);
+
                 return Error::UFS_NOERR;
             }
         }

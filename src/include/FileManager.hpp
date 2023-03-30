@@ -3,6 +3,8 @@
 #include "Log.hpp"
 #include "Defines.hpp"
 
+#include <vector>
+
 namespace ufs
 {
     class FileManager
@@ -28,11 +30,11 @@ namespace ufs
 
         bool isMounted() const { return _isMounted; }
 
-        const std::string curPath() const { return _curPath; }
+        const std::vector<std::string> curPath() const { return _curPath; }
 
     private:
         int _curDirInodeNo{0};
         bool _isMounted{false};
-        std::string _curPath{"/"};
+        std::vector<std::string> _curPath;
     };
 }
