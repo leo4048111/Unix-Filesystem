@@ -16,12 +16,12 @@ git clone --recurse-submodules https://github.com/leo4048111/Unix-Filesystem
 + ``ls``
 
 + ``cd <dir>``
-+ `` touch <filename>``
++ ``touch <filename>``
 
 + ``echo <string> [>] [filename]``
 
-+ `` mkdir <dirname>``
-+ `` cat <filename>``
++ ``mkdir <dirname>``
++ ``cat <filename>``
 + ``rm <filename>``
 + ``rmdir <dir>``
 + ``cp <externalFilePath> <internalFilename>``
